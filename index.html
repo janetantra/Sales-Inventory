@@ -1,20 +1,51 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SaleTrack</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg:#0d0f14;--surface:#161a23;--card:#1e2330;--border:#2a3040;
   --accent:#7c6ef7;--accent2:#5eead4;--text:#e8eaf0;--muted:#8892a4;
-  --success:#34d399;--danger:#f87171;--radius:10px;
+  --success:#34d399;--danger:#f87171;--warning:#fbbf24;--radius:10px;
   --font:'Inter',system-ui,sans-serif;
 }
 body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;min-height:100vh}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
-/* NAV */
+/* ── AUTH / GATE SCREENS ── */
+.screen{display:none;min-height:100vh;align-items:center;justify-content:center;padding:20px}
+.screen.active{display:flex}
+.auth-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:36px;width:100%;max-width:400px}
+.auth-logo{text-align:center;font-size:22px;font-weight:600;margin-bottom:8px}
+.auth-logo span{color:var(--accent)}
+.auth-sub{text-align:center;color:var(--muted);font-size:13px;margin-bottom:28px}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+.form-group input,.form-group select{width:100%;padding:10px 12px;background:#ffffff08;border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:border .15s}
+.form-group input:focus,.form-group select:focus{border-color:var(--accent)}
+.btn{width:100%;padding:11px;border-radius:8px;border:none;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font);transition:all .15s;margin-top:4px}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#6a5de0}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted);width:auto;padding:7px 14px;font-size:13px}
+.btn-ghost:hover{border-color:var(--muted);color:var(--text)}
+.btn-sm{padding:5px 10px;font-size:12px;width:auto}
+.btn-danger-sm{background:#f8717120;color:var(--danger);border:1px solid #f8717140;padding:5px 10px;font-size:12px;width:auto;border-radius:6px;cursor:pointer;font-family:var(--font)}
+.btn-danger-sm:hover{background:#f8717130}
+.auth-err{background:#f8717115;border:1px solid #f8717140;border-radius:8px;padding:10px 12px;font-size:12px;color:var(--danger);margin-bottom:14px;display:none}
+.auth-err.show{display:block}
+.gate-icon{font-size:48px;text-align:center;margin-bottom:12px}
+.gate-title{font-size:18px;font-weight:600;text-align:center;margin-bottom:8px}
+.gate-msg{color:var(--muted);font-size:13px;text-align:center;line-height:1.6;margin-bottom:20px}
+.gate-link{display:block;text-align:center;color:var(--accent);font-size:13px;margin-top:12px;text-decoration:none}
+.spinner{width:18px;height:18px;border:2px solid #ffffff30;border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── NAV ── */
 nav{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:100}
 .nav-logo{font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px;color:var(--text)}
 .nav-logo span{color:var(--accent)}
@@ -22,27 +53,29 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:14px 2
 .nav-tab{background:none;border:none;padding:7px 14px;border-radius:8px;font-size:13px;color:var(--muted);cursor:pointer;transition:all .15s;font-family:var(--font)}
 .nav-tab:hover{color:var(--text);background:var(--card)}
 .nav-tab.active{color:var(--accent);background:#7c6ef720;font-weight:500}
-.nav-right{font-size:12px;color:var(--muted)}
+.nav-right{display:flex;align-items:center;gap:10px}
+.nav-store{font-size:12px;color:var(--muted)}
+.logout-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:6px;font-size:12px;cursor:pointer;font-family:var(--font)}
+.logout-btn:hover{color:var(--danger);border-color:var(--danger)}
 .hamburger{display:none;background:none;border:none;color:var(--text);font-size:22px;cursor:pointer;padding:4px}
 
-/* VIEWS */
+/* ── VIEWS ── */
 .view{display:none;padding:24px}
 .view.active{display:block}
 
-/* PERIOD TABS */
+/* ── PERIOD TABS ── */
 .period-bar{display:flex;gap:6px;margin-bottom:24px;flex-wrap:wrap}
 .period-btn{padding:6px 16px;border-radius:20px;border:1px solid var(--border);background:none;color:var(--muted);font-size:12px;cursor:pointer;font-family:var(--font);transition:all .15s}
 .period-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 
-/* KPI */
+/* ── KPI ── */
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px}
 .kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
 .kpi-label{font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
 .kpi-val{font-size:24px;font-weight:600}
 .kpi-sub{font-size:11px;color:var(--muted);margin-top:4px}
-.kpi-sub.up{color:var(--success)}
 
-/* CHARTS */
+/* ── CHARTS ── */
 .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
 .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px}
 .card h3{font-size:12px;color:var(--muted);font-weight:500;margin-bottom:14px;text-transform:uppercase;letter-spacing:.5px}
@@ -54,7 +87,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:14px 2
 .bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s}
 .bar-val{min-width:68px;color:var(--text);text-align:right;font-size:11px}
 
-/* TABLE */
+/* ── TABLE ── */
 .tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th{padding:8px 12px;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px}
@@ -63,46 +96,34 @@ tr:last-child td{border-bottom:none}
 tr:hover td{background:#ffffff04}
 .tbl-empty{text-align:center;padding:32px;color:var(--muted)}
 
-/* FORMS */
+/* ── SECTION HEADER ── */
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
 .section-header h2{font-size:15px;font-weight:600}
-.btn{padding:8px 16px;border-radius:8px;border:none;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font);transition:all .15s}
-.btn-primary{background:var(--accent);color:#fff}
-.btn-primary:hover{background:#6a5de0}
-.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted)}
-.btn-ghost:hover{border-color:var(--muted);color:var(--text)}
-.btn-danger{background:#f8717120;color:var(--danger);border:1px solid #f8717140}
-.btn-danger:hover{background:#f8717130}
-.btn-sm{padding:5px 10px;font-size:12px}
 
-/* SEARCH BAR */
+/* ── SEARCH ── */
 .search-bar{position:relative;margin-bottom:16px}
 .search-bar input{width:100%;padding:9px 12px 9px 36px;background:#ffffff08;border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:border .15s}
 .search-bar input:focus{border-color:var(--accent)}
-.search-bar .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:16px;pointer-events:none}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
 
-/* MODAL */
+/* ── MODAL ── */
 .overlay{position:fixed;inset:0;background:#00000090;z-index:200;display:none;align-items:center;justify-content:center;padding:16px}
 .overlay.open{display:flex}
 .modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
 .modal h2{font-size:16px;font-weight:600;margin-bottom:20px}
-.form-group{margin-bottom:14px}
-.form-group label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
-.form-group input,.form-group select{width:100%;padding:9px 12px;background:#ffffff08;border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:border .15s}
-.form-group input:focus,.form-group select:focus{border-color:var(--accent)}
-.form-group select option{background:var(--surface);color:var(--text)}
 .modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
 
-/* ITEMS PAGE */
+/* ── ITEMS ── */
 .items-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
 .item-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:6px}
 .item-name{font-weight:500;font-size:14px}
 .item-price{color:var(--accent2);font-size:18px;font-weight:600}
 .item-stock{font-size:12px;color:var(--muted)}
 .item-stock span{color:var(--success);font-weight:500}
+.stock-low{color:var(--danger) !important}
 .item-actions{display:flex;gap:6px;margin-top:6px}
 
-/* SALE ITEMS (autocomplete rows) */
+/* ── SALE ROWS (autocomplete) ── */
 .sale-items-list{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
 .sale-item-row{background:#ffffff06;border:1px solid var(--border);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:8px}
 .sale-item-row-top{display:flex;gap:8px;align-items:center}
@@ -124,84 +145,164 @@ tr:hover td{background:#ffffff04}
 .sale-total{display:flex;justify-content:space-between;padding:12px;background:#7c6ef710;border-radius:8px;margin-top:8px}
 .sale-total-label{color:var(--muted);font-size:13px}
 .sale-total-val{font-size:16px;font-weight:600;color:var(--accent)}
-.no-items-msg{font-size:12px;color:var(--muted);padding:8px;text-align:center}
 
-/* STOCK BADGE in item cards */
-.stock-low{color:var(--danger) !important}
+/* ── ADMIN ── */
+.admin-badge{background:#7c6ef720;color:var(--accent);padding:3px 8px;border-radius:20px;font-size:11px;font-weight:500}
+.license-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.license-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.license-info{flex:1}
+.license-email{font-weight:500;font-size:14px}
+.license-store{font-size:12px;color:var(--muted)}
+.license-meta{font-size:11px;color:var(--muted)}
+.badge-active{background:#34d39920;color:var(--success);padding:3px 8px;border-radius:20px;font-size:11px;font-weight:500}
+.badge-inactive{background:#f8717120;color:var(--danger);padding:3px 8px;border-radius:20px;font-size:11px;font-weight:500}
+.license-actions{display:flex;gap:6px;flex-wrap:wrap}
 
-/* RESPONSIVE */
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:13px;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;max-width:300px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-color:#34d39940;color:var(--success)}
+.toast.error{border-color:#f8717140;color:var(--danger)}
+
+/* ── LOADING ── */
+.loading-overlay{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+.loading-overlay.hidden{display:none}
+
+/* ── RESPONSIVE ── */
 @media(max-width:640px){
   .charts-row{grid-template-columns:1fr}
   .kpi-grid{grid-template-columns:1fr 1fr}
   .nav-tabs{display:none}
   .nav-tabs.open{display:flex;flex-direction:column;position:fixed;top:56px;left:0;right:0;background:var(--surface);border-bottom:1px solid var(--border);padding:8px;z-index:99}
-  .nav-tab{justify-content:flex-start}
   .hamburger{display:block}
   .view{padding:16px}
+  .nav-store{display:none}
 }
 </style>
 </head>
 <body>
 
-<nav>
-  <div class="nav-logo">📊 <span>Sale</span>Track</div>
-  <div class="nav-tabs" id="navTabs">
-    <button class="nav-tab active" onclick="showView('dashboard',this)">Dashboard</button>
-    <button class="nav-tab" onclick="showView('items',this)">Items</button>
-    <button class="nav-tab" onclick="showView('sales',this)">Sales log</button>
-  </div>
-  <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">☰</button>
-  <div class="nav-right" id="navDate"></div>
-</nav>
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div style="font-size:24px;font-weight:600"><span style="color:var(--accent)">Sale</span>Track</div>
+  <div><span class="spinner"></span><span style="color:var(--muted);font-size:13px">Loading…</span></div>
+</div>
 
-<!-- DASHBOARD -->
-<div class="view active" id="view-dashboard">
-  <div class="period-bar">
-    <button class="period-btn active" onclick="setPeriod('daily',this)">Daily</button>
-    <button class="period-btn" onclick="setPeriod('weekly',this)">Weekly</button>
-    <button class="period-btn" onclick="setPeriod('monthly',this)">Monthly</button>
-    <button class="period-btn" onclick="setPeriod('yearly',this)">Yearly</button>
+<!-- LOGIN SCREEN -->
+<div class="screen" id="loginScreen">
+  <div class="auth-box">
+    <div class="auth-logo">📊 <span>Sale</span>Track</div>
+    <div class="auth-sub">Sign in to your store dashboard</div>
+    <div class="auth-err" id="loginErr"></div>
+    <div class="form-group"><label>Email</label><input type="email" id="loginEmail" placeholder="you@email.com"></div>
+    <div class="form-group"><label>Password</label><input type="password" id="loginPass" placeholder="••••••••"></div>
+    <button class="btn btn-primary" onclick="doLogin()" id="loginBtn">Sign in</button>
+    <a href="#" onclick="showForgot()" style="display:block;text-align:center;color:var(--muted);font-size:12px;margin-top:14px;text-decoration:none">Forgot password?</a>
   </div>
-  <div class="kpi-grid">
-    <div class="kpi"><div class="kpi-label">Total sales</div><div class="kpi-val" id="kpi-total">₱0</div><div class="kpi-sub" id="kpi-period">Today</div></div>
-    <div class="kpi"><div class="kpi-label">Orders</div><div class="kpi-val" id="kpi-orders">0</div><div class="kpi-sub">transactions</div></div>
-    <div class="kpi"><div class="kpi-label">Avg. order</div><div class="kpi-val" id="kpi-avg">₱0</div><div class="kpi-sub">per transaction</div></div>
-    <div class="kpi"><div class="kpi-label">Items sold</div><div class="kpi-val" id="kpi-items">0</div><div class="kpi-sub">units total</div></div>
+</div>
+
+<!-- FORGOT PASSWORD SCREEN -->
+<div class="screen" id="forgotScreen">
+  <div class="auth-box">
+    <div class="auth-logo">📊 <span>Sale</span>Track</div>
+    <div class="auth-sub">Enter your email to reset your password</div>
+    <div class="auth-err" id="forgotErr"></div>
+    <div class="form-group"><label>Email</label><input type="email" id="forgotEmail" placeholder="you@email.com"></div>
+    <button class="btn btn-primary" onclick="doForgot()" id="forgotBtn">Send reset link</button>
+    <a href="#" onclick="showLogin()" style="display:block;text-align:center;color:var(--muted);font-size:12px;margin-top:14px;text-decoration:none">← Back to sign in</a>
   </div>
-  <div class="charts-row">
-    <div class="card"><h3 id="trend-label">Sales trend</h3><div class="bar-chart" id="trend-chart"></div></div>
-    <div class="card"><h3>Top items</h3><div class="bar-chart" id="top-items-chart"></div></div>
+</div>
+
+<!-- NO LICENSE SCREEN -->
+<div class="screen" id="noLicenseScreen">
+  <div class="auth-box">
+    <div class="gate-icon">🔒</div>
+    <div class="gate-title">No active license</div>
+    <div class="gate-msg">Your account doesn't have an active SaleTrack license.<br>Contact PortfolioForge to get access.</div>
+    <a href="https://wa.me/639271500784" target="_blank" class="btn btn-primary" style="display:block;text-align:center;text-decoration:none;padding:11px">💬 Contact via WhatsApp</a>
+    <a href="#" onclick="doLogout()" class="gate-link">Sign out</a>
   </div>
-  <div class="card">
-    <div class="section-header"><h2>Recent transactions</h2><button class="btn btn-primary btn-sm" onclick="openAddSale()">+ Add sale</button></div>
+</div>
+
+<!-- EXPIRED LICENSE SCREEN -->
+<div class="screen" id="expiredScreen">
+  <div class="auth-box">
+    <div class="gate-icon">⏰</div>
+    <div class="gate-title">License expired</div>
+    <div class="gate-msg">Your SaleTrack license has expired.<br>Renew to continue accessing your dashboard.</div>
+    <a href="https://wa.me/639271500784" target="_blank" class="btn btn-primary" style="display:block;text-align:center;text-decoration:none;padding:11px">💬 Renew via WhatsApp</a>
+    <a href="#" onclick="doLogout()" class="gate-link">Sign out</a>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp" style="display:none">
+  <nav>
+    <div class="nav-logo">📊 <span>Sale</span>Track</div>
+    <div class="nav-tabs" id="navTabs">
+      <button class="nav-tab active" onclick="showView('dashboard',this)">Dashboard</button>
+      <button class="nav-tab" onclick="showView('items',this)">Items</button>
+      <button class="nav-tab" onclick="showView('sales',this)">Sales log</button>
+      <button class="nav-tab" id="adminTabBtn" style="display:none" onclick="showView('admin',this)">⚙️ Admin</button>
+    </div>
+    <button class="hamburger" onclick="toggleMenu()">☰</button>
+    <div class="nav-right">
+      <span class="nav-store" id="navStoreName"></span>
+      <button class="logout-btn" onclick="doLogout()">Sign out</button>
+    </div>
+  </nav>
+
+  <!-- DASHBOARD -->
+  <div class="view active" id="view-dashboard">
+    <div class="period-bar">
+      <button class="period-btn active" onclick="setPeriod('daily',this)">Daily</button>
+      <button class="period-btn" onclick="setPeriod('weekly',this)">Weekly</button>
+      <button class="period-btn" onclick="setPeriod('monthly',this)">Monthly</button>
+      <button class="period-btn" onclick="setPeriod('yearly',this)">Yearly</button>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-label">Total sales</div><div class="kpi-val" id="kpi-total">₱0</div><div class="kpi-sub" id="kpi-period">Today</div></div>
+      <div class="kpi"><div class="kpi-label">Orders</div><div class="kpi-val" id="kpi-orders">0</div><div class="kpi-sub">transactions</div></div>
+      <div class="kpi"><div class="kpi-label">Avg. order</div><div class="kpi-val" id="kpi-avg">₱0</div><div class="kpi-sub">per transaction</div></div>
+      <div class="kpi"><div class="kpi-label">Items sold</div><div class="kpi-val" id="kpi-items">0</div><div class="kpi-sub">units total</div></div>
+    </div>
+    <div class="charts-row">
+      <div class="card"><h3 id="trend-label">Sales trend</h3><div class="bar-chart" id="trend-chart"></div></div>
+      <div class="card"><h3>Top items</h3><div class="bar-chart" id="top-items-chart"></div></div>
+    </div>
+    <div class="card">
+      <div class="section-header"><h2>Recent transactions</h2><button class="btn-ghost btn-sm" style="padding:7px 14px;font-size:13px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;cursor:pointer;font-family:var(--font)" onclick="openAddSale()">+ Add sale</button></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>#</th><th>Items</th><th>Amount</th><th>Date & time</th><th></th></tr></thead>
+        <tbody id="recent-tbody"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- ITEMS -->
+  <div class="view" id="view-items">
+    <div class="section-header"><h2>Items & prices</h2><button class="btn-ghost btn-sm" style="padding:7px 14px;font-size:13px;background:var(--accent);border:none;color:#fff;border-radius:8px;cursor:pointer;font-family:var(--font);font-weight:500" onclick="openAddItem()">+ Add item</button></div>
+    <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="items-search" placeholder="Search items…" oninput="renderItems()"></div>
+    <div class="items-grid" id="items-grid"></div>
+  </div>
+
+  <!-- SALES LOG -->
+  <div class="view" id="view-sales">
+    <div class="section-header"><h2>All sales</h2><button class="btn-ghost" style="width:auto;padding:7px 14px;font-size:13px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;cursor:pointer;font-family:var(--font)" onclick="exportCSV()">Export CSV</button></div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>#</th><th>Items</th><th>Amount</th><th>Date & time</th><th></th></tr></thead>
-      <tbody id="recent-tbody"></tbody>
+      <tbody id="all-sales-tbody"></tbody>
     </table></div>
   </div>
-</div>
 
-<!-- ITEMS -->
-<div class="view" id="view-items">
-  <div class="section-header">
-    <h2>Items & prices</h2>
-    <button class="btn btn-primary" onclick="openAddItem()">+ Add item</button>
+  <!-- ADMIN -->
+  <div class="view" id="view-admin">
+    <div class="section-header">
+      <h2>License management <span class="admin-badge">Admin only</span></h2>
+      <button style="padding:7px 14px;font-size:13px;background:var(--accent);border:none;color:#fff;border-radius:8px;cursor:pointer;font-family:var(--font);font-weight:500" onclick="openAddLicense()">+ Add license</button>
+    </div>
+    <div id="licenses-list"></div>
   </div>
-  <!-- Search bar for items page -->
-  <div class="search-bar">
-    <span class="search-icon">🔍</span>
-    <input type="text" id="items-search" placeholder="Search items…" oninput="renderItems()">
-  </div>
-  <div class="items-grid" id="items-grid"></div>
-</div>
-
-<!-- SALES LOG -->
-<div class="view" id="view-sales">
-  <div class="section-header"><h2>All sales</h2><button class="btn btn-ghost btn-sm" onclick="exportCSV()">Export CSV</button></div>
-  <div class="tbl-wrap"><table>
-    <thead><tr><th>#</th><th>Items</th><th>Amount</th><th>Date & time</th><th></th></tr></thead>
-    <tbody id="all-sales-tbody"></tbody>
-  </table></div>
 </div>
 
 <!-- ADD SALE MODAL -->
@@ -209,20 +310,17 @@ tr:hover td{background:#ffffff04}
   <div class="modal">
     <h2>New sale</h2>
     <div id="sale-items-list" class="sale-items-list"></div>
-    <button class="btn btn-ghost btn-sm" onclick="addSaleItemRow()" style="margin-bottom:12px">+ Add item</button>
+    <button class="btn-ghost btn-sm" style="padding:7px 14px;font-size:12px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;cursor:pointer;font-family:var(--font);margin-bottom:12px" onclick="addSaleItemRow()">+ Add item</button>
     <div class="sale-total"><span class="sale-total-label">Total</span><span class="sale-total-val" id="sale-total-display">₱0</span></div>
-    <div class="form-group" style="margin-top:12px">
-      <label>Date & time</label>
-      <input type="datetime-local" id="sale-datetime">
-    </div>
+    <div class="form-group" style="margin-top:12px"><label>Date & time</label><input type="datetime-local" id="sale-datetime"></div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('saleModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveSale()">Save sale</button>
+      <button class="btn-ghost" style="width:auto;padding:8px 16px;font-size:13px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;cursor:pointer;font-family:var(--font)" onclick="closeModal('saleModal')">Cancel</button>
+      <button class="btn-ghost" style="width:auto;padding:8px 16px;font-size:13px;background:var(--accent);border:none;color:#fff;border-radius:8px;cursor:pointer;font-family:var(--font);font-weight:500" onclick="saveSale()">Save sale</button>
     </div>
   </div>
 </div>
 
-<!-- ADD / EDIT ITEM MODAL -->
+<!-- ADD/EDIT ITEM MODAL -->
 <div class="overlay" id="itemModal">
   <div class="modal">
     <h2 id="itemModalTitle">Add item</h2>
@@ -230,413 +328,523 @@ tr:hover td{background:#ffffff04}
     <div class="form-group"><label>Price (₱)</label><input type="number" id="item-price" placeholder="0" min="0" step="0.01"></div>
     <div class="form-group"><label>Stock (available qty)</label><input type="number" id="item-stock" placeholder="0" min="0" step="1"></div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('itemModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveItem()">Save item</button>
+      <button class="btn-ghost" style="width:auto;padding:8px 16px;font-size:13px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;cursor:pointer;font-family:var(--font)" onclick="closeModal('itemModal')">Cancel</button>
+      <button class="btn-ghost" style="width:auto;padding:8px 16px;font-size:13px;background:var(--accent);border:none;color:#fff;border-radius:8px;cursor:pointer;font-family:var(--font);font-weight:500" onclick="saveItem()">Save item</button>
     </div>
   </div>
 </div>
 
+<!-- ADD LICENSE MODAL -->
+<div class="overlay" id="licenseModal">
+  <div class="modal">
+    <h2 id="licenseModalTitle">Add license</h2>
+    <div class="form-group"><label>Store owner email</label><input type="email" id="lic-email" placeholder="owner@email.com"></div>
+    <div class="form-group"><label>Store name</label><input type="text" id="lic-store" placeholder="e.g. Juan's Store"></div>
+    <div class="form-group"><label>Expiry date</label><input type="date" id="lic-expiry"></div>
+    <div class="form-group"><label>Status</label>
+      <select id="lic-active">
+        <option value="true">Active</option>
+        <option value="false">Inactive</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" style="width:auto;padding:8px 16px;font-size:13px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;cursor:pointer;font-family:var(--font)" onclick="closeModal('licenseModal')">Cancel</button>
+      <button class="btn-ghost" style="width:auto;padding:8px 16px;font-size:13px;background:var(--accent);border:none;color:#fff;border-radius:8px;cursor:pointer;font-family:var(--font);font-weight:500" onclick="saveLicense()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
 <script>
+// ─── SUPABASE ──────────────────────────────────────────────────────────────────
+const { createClient } = supabase;
+const sb = createClient(
+  'https://cmrddzyqmevauvtxelfw.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtcmRkenlxbWV2YXV2dHhlbGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwMDYyNTUsImV4cCI6MjA5ODU4MjI1NX0.GJ3SU3J4CAIKo8png3WCM7EJOo9TryB_EblV5Vuk80A'
+);
+
+// ─── YOUR ADMIN EMAIL ──────────────────────────────────────────────────────────
+const ADMIN_EMAIL = 'janetantra@gmail.com';
+
 // ─── STATE ────────────────────────────────────────────────────────────────────
-let items = JSON.parse(localStorage.getItem('st_items') || '[]');
-let sales = JSON.parse(localStorage.getItem('st_sales') || '[]');
-
-// Migrate old items that don't have a stock field
-items = items.map(it => ({ stock: 0, ...it }));
-
+let currentUser = null;
+let isAdmin = false;
+let items = [];
+let sales = [];
 let period = 'daily';
-let editItemIdx = null;
+let editItemId = null;
+let editLicenseId = null;
+let acState = [];
 
-function saveItems(){ localStorage.setItem('st_items', JSON.stringify(items)) }
-function saveSales(){ localStorage.setItem('st_sales', JSON.stringify(sales)) }
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+async function init(){
+  const { data: { session } } = await sb.auth.getSession();
+  if(session){ await onSignedIn(session.user); }
+  else { showScreen('loginScreen'); }
+  document.getElementById('loadingOverlay').classList.add('hidden');
+}
+
+sb.auth.onAuthStateChange(async (event, session) => {
+  if(event === 'SIGNED_IN' && session){ await onSignedIn(session.user); }
+  if(event === 'SIGNED_OUT'){ showScreen('loginScreen'); document.getElementById('mainApp').style.display='none'; }
+});
+
+async function onSignedIn(user){
+  currentUser = user;
+  isAdmin = user.email === ADMIN_EMAIL;
+  if(isAdmin){
+    showMainApp();
+    return;
+  }
+  // Check license
+  const { data: lic } = await sb.from('licenses').select('*').eq('user_id', user.id).single();
+  if(!lic){ showScreen('noLicenseScreen'); return; }
+  if(!lic.is_active){ showScreen('noLicenseScreen'); return; }
+  if(lic.expiry_date && new Date(lic.expiry_date) < new Date()){ showScreen('expiredScreen'); return; }
+  document.getElementById('navStoreName').textContent = lic.store_name || '';
+  showMainApp();
+}
+
+function showMainApp(){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('mainApp').style.display = 'block';
+  if(isAdmin){
+    document.getElementById('adminTabBtn').style.display = '';
+    document.getElementById('navStoreName').textContent = '🛡 Admin';
+  }
+  loadItems().then(() => {
+    loadSales().then(() => renderDashboard());
+  });
+  if(isAdmin) loadLicenses();
+}
+
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
+function showScreen(id){
+  document.getElementById('mainApp').style.display='none';
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function showLogin(){ showScreen('loginScreen'); }
+function showForgot(){ showScreen('forgotScreen'); }
+
+async function doLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const btn = document.getElementById('loginBtn');
+  const err = document.getElementById('loginErr');
+  err.classList.remove('show');
+  if(!email||!pass){ err.textContent='Enter email and password.'; err.classList.add('show'); return; }
+  btn.innerHTML='<span class="spinner"></span>Signing in…'; btn.disabled=true;
+  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if(error){ err.textContent=error.message; err.classList.add('show'); }
+  btn.innerHTML='Sign in'; btn.disabled=false;
+}
+
+async function doForgot(){
+  const email = document.getElementById('forgotEmail').value.trim();
+  const btn = document.getElementById('forgotBtn');
+  const err = document.getElementById('forgotErr');
+  err.classList.remove('show');
+  if(!email){ err.textContent='Enter your email.'; err.classList.add('show'); return; }
+  btn.innerHTML='<span class="spinner"></span>Sending…'; btn.disabled=true;
+  const { error } = await sb.auth.resetPasswordForEmail(email);
+  if(error){ err.textContent=error.message; err.classList.add('show'); }
+  else { showToast('Reset link sent! Check your email.','success'); showLogin(); }
+  btn.innerHTML='Send reset link'; btn.disabled=false;
+}
+
+async function doLogout(){
+  await sb.auth.signOut();
+  currentUser=null; isAdmin=false; items=[]; sales=[];
+}
 
 // ─── NAV ──────────────────────────────────────────────────────────────────────
 function showView(id, btn){
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('view-' + id).classList.add('active');
+  document.getElementById('view-'+id).classList.add('active');
   if(btn) btn.classList.add('active');
-  if(id === 'dashboard') renderDashboard();
-  if(id === 'items'){ document.getElementById('items-search').value=''; renderItems(); }
-  if(id === 'sales') renderAllSales();
+  if(id==='dashboard') renderDashboard();
+  if(id==='items'){ document.getElementById('items-search').value=''; renderItems(); }
+  if(id==='sales') renderAllSales();
+  if(id==='admin') loadLicenses();
   document.getElementById('navTabs').classList.remove('open');
 }
-function toggleMenu(){ document.getElementById('navTabs').classList.toggle('open') }
-document.getElementById('navDate').textContent = new Date().toLocaleDateString('en-PH', {weekday:'short', month:'short', day:'numeric'});
+function toggleMenu(){ document.getElementById('navTabs').classList.toggle('open'); }
+
+// ─── DATA ─────────────────────────────────────────────────────────────────────
+async function loadItems(){
+  const { data } = await sb.from('items').select('*').order('name');
+  items = data || [];
+}
+async function loadSales(){
+  const { data } = await sb.from('sales').select('*').order('datetime', {ascending:false});
+  sales = data || [];
+}
 
 // ─── PERIOD ───────────────────────────────────────────────────────────────────
 function setPeriod(p, btn){
-  period = p;
+  period=p;
   document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderDashboard();
 }
-
 function filterSales(p){
   const now = new Date();
   return sales.filter(s => {
     const d = new Date(s.datetime);
-    if(p === 'daily') return d.toDateString() === now.toDateString();
-    if(p === 'weekly'){
-      const wStart = new Date(now); wStart.setDate(now.getDate() - now.getDay()); wStart.setHours(0,0,0,0);
-      return d >= wStart;
-    }
-    if(p === 'monthly') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-    if(p === 'yearly') return d.getFullYear() === now.getFullYear();
+    if(p==='daily') return d.toDateString()===now.toDateString();
+    if(p==='weekly'){ const w=new Date(now); w.setDate(now.getDate()-now.getDay()); w.setHours(0,0,0,0); return d>=w; }
+    if(p==='monthly') return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+    if(p==='yearly') return d.getFullYear()===now.getFullYear();
   });
 }
 
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
 function renderDashboard(){
   const filtered = filterSales(period);
-  const total = filtered.reduce((a,s) => a + s.total, 0);
+  const total = filtered.reduce((a,s)=>a+Number(s.total),0);
   const orders = filtered.length;
-  const avg = orders ? total / orders : 0;
-  const units = filtered.reduce((a,s) => a + s.lines.reduce((b,l) => b + Number(l.qty), 0), 0);
-  const labels = {daily:'Today', weekly:'This week', monthly:'This month', yearly:'This year'};
-  document.getElementById('kpi-total').textContent = '₱' + total.toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2});
-  document.getElementById('kpi-orders').textContent = orders;
-  document.getElementById('kpi-avg').textContent = '₱' + avg.toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2});
-  document.getElementById('kpi-items').textContent = units;
-  document.getElementById('kpi-period').textContent = labels[period];
+  const avg = orders ? total/orders : 0;
+  const units = filtered.reduce((a,s)=>a+(s.lines||[]).reduce((b,l)=>b+Number(l.qty),0),0);
+  const labels={daily:'Today',weekly:'This week',monthly:'This month',yearly:'This year'};
+  document.getElementById('kpi-total').textContent='₱'+total.toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('kpi-orders').textContent=orders;
+  document.getElementById('kpi-avg').textContent='₱'+avg.toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('kpi-items').textContent=units;
+  document.getElementById('kpi-period').textContent=labels[period];
   renderTrend(filtered);
   renderTopItems(filtered);
   renderRecentSales(filtered);
 }
 
 function renderTrend(filtered){
-  const now = new Date(); let buckets = [], label = '';
-  if(period === 'daily'){
-    label = 'Hourly (today)';
-    for(let h=0;h<24;h++) buckets.push({lbl:(h%12||12)+(h<12?'a':'p'), val:0});
-    filtered.forEach(s => { const h = new Date(s.datetime).getHours(); buckets[h].val += s.total; });
-    buckets = buckets.filter((b,i,a) => b.val || a[i-1]?.val || a[i+1]?.val).slice(-8);
-  } else if(period === 'weekly'){
-    label = 'Daily (this week)';
-    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-    for(let i=0;i<7;i++) buckets.push({lbl:days[i], val:0});
-    filtered.forEach(s => { buckets[new Date(s.datetime).getDay()].val += s.total; });
-  } else if(period === 'monthly'){
-    label = 'Weekly (this month)';
-    for(let w=1;w<=5;w++) buckets.push({lbl:'Wk'+w, val:0});
-    filtered.forEach(s => { const w = Math.min(Math.ceil(new Date(s.datetime).getDate()/7)-1, 4); buckets[w].val += s.total; });
+  const now=new Date(); let buckets=[],label='';
+  if(period==='daily'){
+    label='Hourly (today)';
+    for(let h=0;h<24;h++) buckets.push({lbl:(h%12||12)+(h<12?'a':'p'),val:0});
+    filtered.forEach(s=>{buckets[new Date(s.datetime).getHours()].val+=Number(s.total);});
+    buckets=buckets.filter((b,i,a)=>b.val||a[i-1]?.val||a[i+1]?.val).slice(-8);
+  } else if(period==='weekly'){
+    label='Daily (this week)';
+    const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    for(let i=0;i<7;i++) buckets.push({lbl:days[i],val:0});
+    filtered.forEach(s=>{buckets[new Date(s.datetime).getDay()].val+=Number(s.total);});
+  } else if(period==='monthly'){
+    label='Weekly (this month)';
+    for(let w=1;w<=5;w++) buckets.push({lbl:'Wk'+w,val:0});
+    filtered.forEach(s=>{const w=Math.min(Math.ceil(new Date(s.datetime).getDate()/7)-1,4);buckets[w].val+=Number(s.total);});
   } else {
-    label = 'Monthly (this year)';
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    for(let m=0;m<12;m++) buckets.push({lbl:months[m], val:0});
-    filtered.forEach(s => { buckets[new Date(s.datetime).getMonth()].val += s.total; });
+    label='Monthly (this year)';
+    const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    for(let m=0;m<12;m++) buckets.push({lbl:months[m],val:0});
+    filtered.forEach(s=>{buckets[new Date(s.datetime).getMonth()].val+=Number(s.total);});
   }
-  document.getElementById('trend-label').textContent = label;
-  const max = Math.max(...buckets.map(b => b.val), 1);
-  document.getElementById('trend-chart').innerHTML = buckets.map(b => `
-    <div class="bar-row">
-      <span class="bar-lbl">${b.lbl}</span>
-      <div class="bar-bg"><div class="bar-fill" style="width:${(b.val/max*100).toFixed(1)}%"></div></div>
-      <span class="bar-val">${b.val ? '₱'+b.val.toLocaleString('en-PH',{minimumFractionDigits:0}) : '—'}</span>
-    </div>`).join('');
+  document.getElementById('trend-label').textContent=label;
+  const max=Math.max(...buckets.map(b=>b.val),1);
+  document.getElementById('trend-chart').innerHTML=buckets.map(b=>`
+    <div class="bar-row"><span class="bar-lbl">${b.lbl}</span>
+    <div class="bar-bg"><div class="bar-fill" style="width:${(b.val/max*100).toFixed(1)}%"></div></div>
+    <span class="bar-val">${b.val?'₱'+b.val.toLocaleString('en-PH',{minimumFractionDigits:0}):'—'}</span></div>`).join('');
 }
 
 function renderTopItems(filtered){
-  const map = {};
-  filtered.forEach(s => s.lines.forEach(l => {
-    if(!map[l.name]) map[l.name] = 0;
-    map[l.name] += l.price * l.qty;
-  }));
-  const sorted = Object.entries(map).sort((a,b) => b[1]-a[1]).slice(0,6);
-  const max = sorted[0]?.[1] || 1;
-  document.getElementById('top-items-chart').innerHTML = sorted.length
-    ? sorted.map(([name,val]) => `
-      <div class="bar-row">
-        <span class="bar-lbl item-lbl">${name}</span>
-        <div class="bar-bg"><div class="bar-fill" style="width:${(val/max*100).toFixed(1)}%"></div></div>
-        <span class="bar-val">₱${val.toLocaleString('en-PH',{minimumFractionDigits:0})}</span>
-      </div>`).join('')
-    : '<p style="color:var(--muted);font-size:13px">No sales yet</p>';
+  const map={};
+  filtered.forEach(s=>(s.lines||[]).forEach(l=>{if(!map[l.name])map[l.name]=0;map[l.name]+=l.price*l.qty;}));
+  const sorted=Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const max=sorted[0]?.[1]||1;
+  document.getElementById('top-items-chart').innerHTML=sorted.length
+    ?sorted.map(([name,val])=>`<div class="bar-row"><span class="bar-lbl item-lbl">${name}</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:${(val/max*100).toFixed(1)}%"></div></div>
+      <span class="bar-val">₱${val.toLocaleString('en-PH',{minimumFractionDigits:0})}</span></div>`).join('')
+    :'<p style="color:var(--muted);font-size:13px">No sales yet</p>';
 }
 
 function renderRecentSales(filtered){
-  const sorted = [...filtered].sort((a,b) => new Date(b.datetime)-new Date(a.datetime)).slice(0,8);
-  document.getElementById('recent-tbody').innerHTML = sorted.length
-    ? sorted.map(s => saleRow(s)).join('')
-    : '<tr><td colspan="5" class="tbl-empty">No sales this period</td></tr>';
+  const sorted=[...filtered].sort((a,b)=>new Date(b.datetime)-new Date(a.datetime)).slice(0,8);
+  document.getElementById('recent-tbody').innerHTML=sorted.length
+    ?sorted.map(s=>saleRow(s)).join('')
+    :'<tr><td colspan="5" class="tbl-empty">No sales this period</td></tr>';
 }
 
 function saleRow(s){
-  const summary = s.lines.map(l => `${l.name} ×${l.qty}`).join(', ');
-  const dt = new Date(s.datetime).toLocaleString('en-PH', {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+  const summary=(s.lines||[]).map(l=>`${l.name} ×${l.qty}`).join(', ');
+  const dt=new Date(s.datetime).toLocaleString('en-PH',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
   return `<tr>
-    <td style="color:var(--muted)">#${String(s.id).padStart(3,'0')}</td>
+    <td style="color:var(--muted)">#${String(s.id).substring(0,6)}</td>
     <td>${summary}</td>
-    <td style="color:var(--accent2);font-weight:500">₱${s.total.toLocaleString('en-PH',{minimumFractionDigits:2})}</td>
+    <td style="color:var(--accent2);font-weight:500">₱${Number(s.total).toLocaleString('en-PH',{minimumFractionDigits:2})}</td>
     <td style="color:var(--muted)">${dt}</td>
-    <td><button class="btn btn-danger btn-sm" onclick="deleteSale(${s.id})">✕</button></td>
+    <td><button class="btn-danger-sm" onclick="deleteSale('${s.id}')">✕</button></td>
   </tr>`;
 }
 
-// ─── ALL SALES ────────────────────────────────────────────────────────────────
 function renderAllSales(){
-  const sorted = [...sales].sort((a,b) => new Date(b.datetime)-new Date(a.datetime));
-  document.getElementById('all-sales-tbody').innerHTML = sorted.length
-    ? sorted.map(s => saleRow(s)).join('')
-    : '<tr><td colspan="5" class="tbl-empty">No sales recorded yet</td></tr>';
+  document.getElementById('all-sales-tbody').innerHTML=sales.length
+    ?[...sales].sort((a,b)=>new Date(b.datetime)-new Date(a.datetime)).map(s=>saleRow(s)).join('')
+    :'<tr><td colspan="5" class="tbl-empty">No sales recorded yet</td></tr>';
 }
 
-function deleteSale(id){
+async function deleteSale(id){
   if(!confirm('Delete this sale?')) return;
-  sales = sales.filter(s => s.id !== id);
-  saveSales();
-  renderDashboard();
-  renderAllSales();
+  await sb.from('sales').delete().eq('id',id);
+  await loadSales(); renderDashboard(); renderAllSales();
 }
 
-// ─── AUTOCOMPLETE SALE ROWS ───────────────────────────────────────────────────
-let acState = []; // [{selectedItem, qty}]
-
+// ─── ADD SALE (autocomplete) ──────────────────────────────────────────────────
 function openAddSale(){
-  if(!items.length){ alert('Add items first in the Items tab.'); return; }
-  acState = [];
-  document.getElementById('sale-items-list').innerHTML = '';
-  const now = new Date();
-  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-  document.getElementById('sale-datetime').value = now.toISOString().slice(0,16);
-  addSaleItemRow();
-  updateSaleTotal();
+  if(!items.length){showToast('Add items first.','error');return;}
+  acState=[];
+  document.getElementById('sale-items-list').innerHTML='';
+  const now=new Date(); now.setMinutes(now.getMinutes()-now.getTimezoneOffset());
+  document.getElementById('sale-datetime').value=now.toISOString().slice(0,16);
+  addSaleItemRow(); updateSaleTotal();
   document.getElementById('saleModal').classList.add('open');
 }
-
 function addSaleItemRow(){
-  const idx = acState.length;
-  acState.push({ selectedItem: null, qty: 1 });
-  const list = document.getElementById('sale-items-list');
-  const row = document.createElement('div');
-  row.className = 'sale-item-row';
-  row.dataset.idx = idx;
-  row.innerHTML = `
-    <div class="sale-item-row-top">
-      <div class="ac-wrap">
-        <input class="ac-input" type="text" placeholder="Type to search item…" autocomplete="off"
-          oninput="onAcInput(this, ${idx})"
-          onkeydown="onAcKeydown(event, ${idx})"
-          onfocus="showAcDropdown(${idx})">
-        <div class="ac-dropdown" id="ac-drop-${idx}"></div>
-      </div>
-      <button class="remove-btn" onclick="removeSaleRow(this, ${idx})">×</button>
+  const idx=acState.length; acState.push({selectedItem:null,qty:1});
+  const list=document.getElementById('sale-items-list');
+  const row=document.createElement('div'); row.className='sale-item-row'; row.dataset.idx=idx;
+  row.innerHTML=`<div class="sale-item-row-top">
+    <div class="ac-wrap">
+      <input class="ac-input" type="text" placeholder="Type to search item…" autocomplete="off"
+        oninput="onAcInput(this,${idx})" onkeydown="onAcKeydown(event,${idx})" onfocus="showAcDropdown(${idx},this.value)">
+      <div class="ac-dropdown" id="ac-drop-${idx}"></div>
     </div>
-    <div class="sale-item-row-bottom">
-      <label style="color:var(--muted);font-size:12px;white-space:nowrap">Qty:</label>
-      <input type="number" min="1" value="1" placeholder="1"
-        oninput="onQtyInput(this, ${idx})">
-      <span class="price-display" id="ac-price-${idx}">—</span>
-    </div>`;
+    <button class="remove-btn" onclick="removeSaleRow(this,${idx})">×</button>
+  </div>
+  <div class="sale-item-row-bottom">
+    <label style="color:var(--muted);font-size:12px;white-space:nowrap">Qty:</label>
+    <input type="number" min="1" value="1" placeholder="1" oninput="onQtyInput(this,${idx})">
+    <span class="price-display" id="ac-price-${idx}">—</span>
+  </div>`;
   list.appendChild(row);
 }
-
-function getFilteredItems(query){
-  const q = query.trim().toLowerCase();
-  if(!q) return items;
-  return items.filter(it => it.name.toLowerCase().includes(q));
-}
-
-function onAcInput(input, idx){
-  acState[idx].selectedItem = null;
-  showAcDropdown(idx, input.value);
-  updateSaleTotal();
-}
-
-function showAcDropdown(idx, query=''){
-  const drop = document.getElementById('ac-drop-' + idx);
-  const filtered = getFilteredItems(query);
-  if(!filtered.length){
-    drop.innerHTML = '<div class="no-items-msg">No items found</div>';
-    drop.classList.add('open');
-    return;
-  }
-  drop.innerHTML = filtered.map((it, i) => `
-    <div class="ac-option" data-item-idx="${items.indexOf(it)}" onclick="selectAcItem(${idx}, ${items.indexOf(it)})">
-      <span class="ac-option-name">${it.name}</span>
-      <span class="ac-option-price">₱${Number(it.price).toLocaleString('en-PH',{minimumFractionDigits:2})}</span>
-      <span class="ac-option-stock">${it.stock} in stock</span>
-    </div>`).join('');
+function onAcInput(input,idx){ acState[idx].selectedItem=null; showAcDropdown(idx,input.value); updateSaleTotal(); }
+function showAcDropdown(idx,query=''){
+  const drop=document.getElementById('ac-drop-'+idx);
+  const q=query.trim().toLowerCase();
+  const filtered=q?items.filter(it=>it.name.toLowerCase().includes(q)):items;
+  if(!filtered.length){drop.innerHTML='<div style="padding:9px 12px;font-size:13px;color:var(--muted)">No items found</div>';drop.classList.add('open');return;}
+  drop.innerHTML=filtered.map(it=>`<div class="ac-option" data-item-id="${it.id}" onclick="selectAcItem(${idx},'${it.id}')">
+    <span class="ac-option-name">${it.name}</span>
+    <span class="ac-option-price">₱${Number(it.price).toLocaleString('en-PH',{minimumFractionDigits:2})}</span>
+    <span class="ac-option-stock">${it.stock} in stock</span>
+  </div>`).join('');
   drop.classList.add('open');
 }
-
-function selectAcItem(rowIdx, itemIdx){
-  const it = items[itemIdx];
-  acState[rowIdx].selectedItem = it;
-  const row = document.querySelector(`.sale-item-row[data-idx="${rowIdx}"]`);
-  row.querySelector('.ac-input').value = it.name;
-  document.getElementById('ac-drop-' + rowIdx).classList.remove('open');
+function selectAcItem(rowIdx,itemId){
+  const it=items.find(i=>i.id===itemId);
+  acState[rowIdx].selectedItem=it;
+  const row=document.querySelector(`.sale-item-row[data-idx="${rowIdx}"]`);
+  row.querySelector('.ac-input').value=it.name;
+  document.getElementById('ac-drop-'+rowIdx).classList.remove('open');
   updateSaleTotal();
 }
-
-function onAcKeydown(e, idx){
-  const drop = document.getElementById('ac-drop-' + idx);
-  const opts = drop.querySelectorAll('.ac-option');
-  const focused = drop.querySelector('.ac-option.focused');
-  let fidx = -1;
-  opts.forEach((o,i) => { if(o === focused) fidx = i; });
-  if(e.key === 'ArrowDown'){
-    e.preventDefault();
-    const next = Math.min(fidx+1, opts.length-1);
-    opts.forEach(o => o.classList.remove('focused'));
-    if(opts[next]) opts[next].classList.add('focused');
-  } else if(e.key === 'ArrowUp'){
-    e.preventDefault();
-    const prev = Math.max(fidx-1, 0);
-    opts.forEach(o => o.classList.remove('focused'));
-    if(opts[prev]) opts[prev].classList.add('focused');
-  } else if(e.key === 'Enter'){
-    e.preventDefault();
-    if(focused){
-      const itemIdx = parseInt(focused.dataset.itemIdx);
-      selectAcItem(idx, itemIdx);
-    }
-  } else if(e.key === 'Escape'){
-    drop.classList.remove('open');
-  }
+function onAcKeydown(e,idx){
+  const drop=document.getElementById('ac-drop-'+idx);
+  const opts=drop.querySelectorAll('.ac-option');
+  const focused=drop.querySelector('.ac-option.focused');
+  let fidx=-1; opts.forEach((o,i)=>{if(o===focused)fidx=i;});
+  if(e.key==='ArrowDown'){e.preventDefault();const n=Math.min(fidx+1,opts.length-1);opts.forEach(o=>o.classList.remove('focused'));if(opts[n])opts[n].classList.add('focused');}
+  else if(e.key==='ArrowUp'){e.preventDefault();const n=Math.max(fidx-1,0);opts.forEach(o=>o.classList.remove('focused'));if(opts[n])opts[n].classList.add('focused');}
+  else if(e.key==='Enter'){e.preventDefault();if(focused)selectAcItem(idx,focused.dataset.itemId);}
+  else if(e.key==='Escape'){drop.classList.remove('open');}
 }
-
-function onQtyInput(input, idx){
-  acState[idx].qty = parseInt(input.value) || 0;
-  updateSaleTotal();
-}
-
-function removeSaleRow(btn, idx){
-  btn.closest('.sale-item-row').remove();
-  acState[idx] = { selectedItem: null, qty: 0 };
-  updateSaleTotal();
-}
-
+function onQtyInput(input,idx){ acState[idx].qty=parseInt(input.value)||0; updateSaleTotal(); }
+function removeSaleRow(btn,idx){ btn.closest('.sale-item-row').remove(); acState[idx]={selectedItem:null,qty:0}; updateSaleTotal(); }
 function updateSaleTotal(){
-  let total = 0;
-  document.querySelectorAll('#sale-items-list .sale-item-row').forEach(row => {
-    const idx = parseInt(row.dataset.idx);
-    const state = acState[idx];
-    if(state && state.selectedItem && state.qty > 0){
-      const sub = state.selectedItem.price * state.qty;
-      total += sub;
-      const priceEl = document.getElementById('ac-price-' + idx);
-      if(priceEl) priceEl.textContent = '₱' + sub.toLocaleString('en-PH', {minimumFractionDigits:2});
-    } else {
-      const priceEl = document.getElementById('ac-price-' + idx);
-      if(priceEl) priceEl.textContent = '—';
-    }
+  let total=0;
+  document.querySelectorAll('#sale-items-list .sale-item-row').forEach(row=>{
+    const idx=parseInt(row.dataset.idx); const state=acState[idx];
+    if(state&&state.selectedItem&&state.qty>0){
+      const sub=state.selectedItem.price*state.qty; total+=sub;
+      const el=document.getElementById('ac-price-'+idx);
+      if(el) el.textContent='₱'+sub.toLocaleString('en-PH',{minimumFractionDigits:2});
+    } else { const el=document.getElementById('ac-price-'+idx); if(el) el.textContent='—'; }
   });
-  document.getElementById('sale-total-display').textContent = '₱' + total.toLocaleString('en-PH', {minimumFractionDigits:2});
+  document.getElementById('sale-total-display').textContent='₱'+total.toLocaleString('en-PH',{minimumFractionDigits:2});
 }
-
-function saveSale(){
-  const lines = [];
-  document.querySelectorAll('#sale-items-list .sale-item-row').forEach(row => {
-    const idx = parseInt(row.dataset.idx);
-    const state = acState[idx];
-    const qty = parseInt(row.querySelector('input[type=number]').value) || 0;
-    if(state && state.selectedItem && qty > 0){
-      lines.push({ name: state.selectedItem.name, price: state.selectedItem.price, qty });
-    }
+async function saveSale(){
+  const lines=[];
+  document.querySelectorAll('#sale-items-list .sale-item-row').forEach(row=>{
+    const idx=parseInt(row.dataset.idx); const state=acState[idx];
+    const qty=parseInt(row.querySelector('input[type=number]').value)||0;
+    if(state&&state.selectedItem&&qty>0) lines.push({name:state.selectedItem.name,price:state.selectedItem.price,qty});
   });
-  if(!lines.length){ alert('Add at least one item with a valid qty.'); return; }
-  const total = lines.reduce((a,l) => a + l.price * l.qty, 0);
-  const dt = document.getElementById('sale-datetime').value;
-  const id = sales.length ? Math.max(...sales.map(s => s.id)) + 1 : 1;
-  sales.push({ id, lines, total, datetime: dt });
-  saveSales();
+  if(!lines.length){showToast('Add at least one item.','error');return;}
+  const total=lines.reduce((a,l)=>a+l.price*l.qty,0);
+  const dt=document.getElementById('sale-datetime').value;
+  const { error } = await sb.from('sales').insert({user_id:currentUser.id,lines,total,datetime:dt});
+  if(error){showToast('Error saving sale.','error');return;}
+  showToast('Sale saved!','success');
   closeModal('saleModal');
-  renderDashboard();
+  await loadSales(); renderDashboard();
 }
+document.addEventListener('click',e=>{if(!e.target.closest('.ac-wrap')) document.querySelectorAll('.ac-dropdown').forEach(d=>d.classList.remove('open'));});
 
-// Close dropdowns when clicking outside
-document.addEventListener('click', e => {
-  if(!e.target.closest('.ac-wrap')){
-    document.querySelectorAll('.ac-dropdown').forEach(d => d.classList.remove('open'));
-  }
-});
-
-// ─── ITEMS PAGE ───────────────────────────────────────────────────────────────
+// ─── ITEMS ────────────────────────────────────────────────────────────────────
 function renderItems(){
-  const query = (document.getElementById('items-search')?.value || '').trim().toLowerCase();
-  const filtered = query ? items.filter(it => it.name.toLowerCase().includes(query)) : items;
-  const grid = document.getElementById('items-grid');
-  if(!items.length){
-    grid.innerHTML = '<p style="color:var(--muted);padding:16px">No items yet. Add your first item!</p>';
-    return;
+  const query=(document.getElementById('items-search')?.value||'').trim().toLowerCase();
+  const filtered=query?items.filter(it=>it.name.toLowerCase().includes(query)):items;
+  const grid=document.getElementById('items-grid');
+  if(!items.length){grid.innerHTML='<p style="color:var(--muted);padding:16px">No items yet. Add your first item!</p>';return;}
+  if(!filtered.length){grid.innerHTML='<p style="color:var(--muted);padding:16px">No items match your search.</p>';return;}
+  grid.innerHTML=filtered.map(it=>`<div class="item-card">
+    <div class="item-name">${it.name}</div>
+    <div class="item-price">₱${Number(it.price).toLocaleString('en-PH',{minimumFractionDigits:2})}</div>
+    <div class="item-stock">Stock: <span class="${it.stock<=0?'stock-low':''}">${it.stock<=0?'0 — out of stock':it.stock+' available'}</span></div>
+    <div class="item-actions">
+      <button class="btn-ghost btn-sm" style="padding:5px 10px;font-size:12px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer;font-family:var(--font)" onclick="openEditItem('${it.id}')">Edit</button>
+      <button class="btn-danger-sm" onclick="deleteItem('${it.id}')">Delete</button>
+    </div>
+  </div>`).join('');
+}
+function openAddItem(){
+  editItemId=null;
+  document.getElementById('itemModalTitle').textContent='Add item';
+  document.getElementById('item-name').value='';
+  document.getElementById('item-price').value='';
+  document.getElementById('item-stock').value='';
+  document.getElementById('itemModal').classList.add('open');
+}
+function openEditItem(id){
+  editItemId=id;
+  const it=items.find(i=>i.id===id);
+  document.getElementById('itemModalTitle').textContent='Edit item';
+  document.getElementById('item-name').value=it.name;
+  document.getElementById('item-price').value=it.price;
+  document.getElementById('item-stock').value=it.stock||0;
+  document.getElementById('itemModal').classList.add('open');
+}
+async function saveItem(){
+  const name=document.getElementById('item-name').value.trim();
+  const price=parseFloat(document.getElementById('item-price').value);
+  const stock=parseInt(document.getElementById('item-stock').value)||0;
+  if(!name||isNaN(price)||price<0){showToast('Enter a valid name and price.','error');return;}
+  if(editItemId){
+    await sb.from('items').update({name,price,stock}).eq('id',editItemId);
+  } else {
+    await sb.from('items').insert({user_id:currentUser.id,name,price,stock});
   }
-  if(!filtered.length){
-    grid.innerHTML = '<p style="color:var(--muted);padding:16px">No items match your search.</p>';
-    return;
-  }
-  grid.innerHTML = filtered.map(it => {
-    const realIdx = items.indexOf(it);
-    const stockClass = it.stock <= 0 ? 'stock-low' : '';
-    const stockLabel = it.stock <= 0 ? '0 — out of stock' : it.stock + ' available';
-    return `<div class="item-card">
-      <div class="item-name">${it.name}</div>
-      <div class="item-price">₱${Number(it.price).toLocaleString('en-PH',{minimumFractionDigits:2})}</div>
-      <div class="item-stock">Stock: <span class="${stockClass}">${stockLabel}</span></div>
-      <div class="item-actions">
-        <button class="btn btn-ghost btn-sm" onclick="openEditItem(${realIdx})">Edit</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteItem(${realIdx})">Delete</button>
-      </div>
-    </div>`;
-  }).join('');
+  showToast(editItemId?'Item updated!':'Item added!','success');
+  closeModal('itemModal');
+  await loadItems(); renderItems();
+}
+async function deleteItem(id){
+  if(!confirm('Delete this item?')) return;
+  await sb.from('items').delete().eq('id',id);
+  await loadItems(); renderItems();
 }
 
-function openAddItem(){
-  editItemIdx = null;
-  document.getElementById('itemModalTitle').textContent = 'Add item';
-  document.getElementById('item-name').value = '';
-  document.getElementById('item-price').value = '';
-  document.getElementById('item-stock').value = '';
-  document.getElementById('itemModal').classList.add('open');
+// ─── ADMIN — LICENSE MANAGEMENT ───────────────────────────────────────────────
+async function loadLicenses(){
+  const { data } = await sb.from('licenses').select('*, user:user_id(email)').order('created_at',{ascending:false});
+  const list = document.getElementById('licenses-list');
+  if(!data||!data.length){list.innerHTML='<p style="color:var(--muted);padding:16px">No licenses yet.</p>';return;}
+  list.innerHTML=data.map(l=>`
+    <div class="license-card">
+      <div class="license-row">
+        <div class="license-info">
+          <div class="license-email">${l.store_name||'Unnamed store'}</div>
+          <div class="license-store">${l.user?.email||'—'}</div>
+          <div class="license-meta">Expiry: ${l.expiry_date||'No expiry'} &nbsp;·&nbsp; Added: ${new Date(l.created_at).toLocaleDateString('en-PH')}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+          <span class="${l.is_active?'badge-active':'badge-inactive'}">${l.is_active?'Active':'Inactive'}</span>
+          <div class="license-actions">
+            <button class="btn-ghost btn-sm" style="padding:5px 10px;font-size:12px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer;font-family:var(--font)" onclick="toggleLicense('${l.id}',${!l.is_active})">${l.is_active?'Deactivate':'Activate'}</button>
+            <button class="btn-ghost btn-sm" style="padding:5px 10px;font-size:12px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer;font-family:var(--font)" onclick="openEditLicense('${l.id}','${l.store_name||''}','${l.expiry_date||''}',${l.is_active})">Edit</button>
+            <button class="btn-danger-sm" onclick="deleteLicense('${l.id}')">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
 }
-function openEditItem(i){
-  editItemIdx = i;
-  document.getElementById('itemModalTitle').textContent = 'Edit item';
-  document.getElementById('item-name').value = items[i].name;
-  document.getElementById('item-price').value = items[i].price;
-  document.getElementById('item-stock').value = items[i].stock || 0;
-  document.getElementById('itemModal').classList.add('open');
+function openAddLicense(){
+  editLicenseId=null;
+  document.getElementById('licenseModalTitle').textContent='Add license';
+  document.getElementById('lic-email').value='';
+  document.getElementById('lic-store').value='';
+  document.getElementById('lic-expiry').value='';
+  document.getElementById('lic-active').value='true';
+  document.getElementById('lic-email').disabled=false;
+  document.getElementById('licenseModal').classList.add('open');
 }
-function saveItem(){
-  const name = document.getElementById('item-name').value.trim();
-  const price = parseFloat(document.getElementById('item-price').value);
-  const stock = parseInt(document.getElementById('item-stock').value) || 0;
-  if(!name || isNaN(price) || price < 0){ alert('Enter a valid name and price.'); return; }
-  if(editItemIdx === null) items.push({ name, price, stock });
-  else items[editItemIdx] = { name, price, stock };
-  saveItems();
-  closeModal('itemModal');
-  renderItems();
+function openEditLicense(id,store,expiry,active){
+  editLicenseId=id;
+  document.getElementById('licenseModalTitle').textContent='Edit license';
+  document.getElementById('lic-email').value='(existing user)';
+  document.getElementById('lic-email').disabled=true;
+  document.getElementById('lic-store').value=store;
+  document.getElementById('lic-expiry').value=expiry;
+  document.getElementById('lic-active').value=String(active);
+  document.getElementById('licenseModal').classList.add('open');
 }
-function deleteItem(i){
-  if(!confirm(`Delete "${items[i].name}"?`)) return;
-  items.splice(i, 1);
-  saveItems();
-  renderItems();
+async function saveLicense(){
+  const store=document.getElementById('lic-store').value.trim();
+  const expiry=document.getElementById('lic-expiry').value;
+  const active=document.getElementById('lic-active').value==='true';
+  if(editLicenseId){
+    await sb.from('licenses').update({store_name:store,expiry_date:expiry||null,is_active:active}).eq('id',editLicenseId);
+    showToast('License updated!','success');
+  } else {
+    const email=document.getElementById('lic-email').value.trim();
+    if(!email){showToast('Enter email.','error');return;}
+    // Look up user by email via admin (use service key in production; here we use a workaround)
+    const { data: users } = await sb.from('licenses').select('user_id').eq('user_id',currentUser.id).limit(1);
+    // We store email temporarily and activate when user logs in — simpler flow
+    const { error } = await sb.from('licenses').insert({
+      user_id: null, // will be linked when user logs in
+      store_name: store,
+      expiry_date: expiry||null,
+      is_active: active,
+      owner_email: email
+    });
+    if(error){showToast('Error: '+error.message,'error');return;}
+    showToast('License added! User must sign up with this email.','success');
+  }
+  closeModal('licenseModal');
+  loadLicenses();
+}
+async function toggleLicense(id,newState){
+  await sb.from('licenses').update({is_active:newState}).eq('id',id);
+  showToast(newState?'License activated!':'License deactivated!','success');
+  loadLicenses();
+}
+async function deleteLicense(id){
+  if(!confirm('Delete this license? The user will lose access.')) return;
+  await sb.from('licenses').delete().eq('id',id);
+  showToast('License deleted.','success');
+  loadLicenses();
 }
 
 // ─── EXPORT CSV ───────────────────────────────────────────────────────────────
 function exportCSV(){
-  const rows = [['ID','Items','Total','Date & Time']];
-  [...sales].sort((a,b) => new Date(b.datetime)-new Date(a.datetime)).forEach(s => {
-    rows.push([s.id, s.lines.map(l => `${l.name} x${l.qty}`).join(' | '), s.total.toFixed(2), s.datetime]);
+  const rows=[['ID','Items','Total','Date & Time']];
+  [...sales].sort((a,b)=>new Date(b.datetime)-new Date(a.datetime)).forEach(s=>{
+    rows.push([s.id,(s.lines||[]).map(l=>`${l.name} x${l.qty}`).join(' | '),Number(s.total).toFixed(2),s.datetime]);
   });
-  const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
-  const a = document.createElement('a');
-  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-  a.download = 'sales_export.csv';
-  a.click();
+  const csv=rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');
+  const a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv); a.download='sales_export.csv'; a.click();
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast '+type+' show';
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
 }
 
 // ─── UTILS ────────────────────────────────────────────────────────────────────
-function closeModal(id){ document.getElementById(id).classList.remove('open') }
-document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', e => {
-  if(e.target === o) o.classList.remove('open');
-}));
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
-renderDashboard();
-renderItems();
+// ─── START ────────────────────────────────────────────────────────────────────
+init();
 </script>
 </body>
 </html>
