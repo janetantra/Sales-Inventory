@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SaleTrack</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0f14;--surface:#161a23;--card:#1e2330;--border:#2a3040;
+  --accent:#7c6ef7;--accent2:#5eead4;--text:#e8eaf0;--muted:#8892a4;
+  --success:#34d399;--danger:#f87171;--radius:10px;
+  --font:'Inter',system-ui,sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;min-height:100vh}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+/* NAV */
+nav{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:100}
+.nav-logo{font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px;color:var(--text)}
+.nav-logo span{color:var(--accent)}
+.nav-tabs{display:flex;gap:2px}
+.nav-tab{background:none;border:none;padding:7px 14px;border-radius:8px;font-size:13px;color:var(--muted);cursor:pointer;transition:all .15s;font-family:var(--font)}
+.nav-tab:hover{color:var(--text);background:var(--card)}
+.nav-tab.active{color:var(--accent);background:#7c6ef720;font-weight:500}
+.nav-right{font-size:12px;color:var(--muted)}
+.hamburger{display:none;background:none;border:none;color:var(--text);font-size:22px;cursor:pointer;padding:4px}
+
+/* VIEWS */
+.view{display:none;padding:24px}
+.view.active{display:block}
+
+/* PERIOD TABS */
+.period-bar{display:flex;gap:6px;margin-bottom:24px;flex-wrap:wrap}
+.period-btn{padding:6px 16px;border-radius:20px;border:1px solid var(--border);background:none;color:var(--muted);font-size:12px;cursor:pointer;font-family:var(--font);transition:all .15s}
+.period-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.kpi-label{font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.kpi-val{font-size:24px;font-weight:600}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:4px}
+.kpi-sub.up{color:var(--success)}
+
+/* CHARTS */
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px}
+.card h3{font-size:12px;color:var(--muted);font-weight:500;margin-bottom:14px;text-transform:uppercase;letter-spacing:.5px}
+.bar-chart{display:flex;flex-direction:column;gap:10px}
+.bar-row{display:flex;align-items:center;gap:10px;font-size:12px}
+.bar-lbl{color:var(--muted);min-width:36px;text-align:right;font-size:11px}
+.bar-lbl.item-lbl{min-width:90px;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-bg{flex:1;height:8px;background:#ffffff0a;border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s}
+.bar-val{min-width:68px;color:var(--text);text-align:right;font-size:11px}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:8px 12px;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:10px 12px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#ffffff04}
+.tbl-empty{text-align:center;padding:32px;color:var(--muted)}
+
+/* FORMS */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.section-header h2{font-size:15px;font-weight:600}
+.btn{padding:8px 16px;border-radius:8px;border:none;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font);transition:all .15s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#6a5de0}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted)}
+.btn-ghost:hover{border-color:var(--muted);color:var(--text)}
+.btn-danger{background:#f8717120;color:var(--danger);border:1px solid #f8717140}
+.btn-danger:hover{background:#f8717130}
+.btn-sm{padding:5px 10px;font-size:12px}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:#00000090;z-index:200;display:none;align-items:center;justify-content:center;padding:16px}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.modal h2{font-size:16px;font-weight:600;margin-bottom:20px}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+.form-group input,.form-group select{width:100%;padding:9px 12px;background:#ffffff08;border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:border .15s}
+.form-group input:focus,.form-group select:focus{border-color:var(--accent)}
+.form-group select option{background:var(--surface);color:var(--text)}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+
+/* ITEMS PAGE */
+.items-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.item-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:8px}
+.item-name{font-weight:500;font-size:14px}
+.item-price{color:var(--accent2);font-size:18px;font-weight:600}
+.item-actions{display:flex;gap:6px;margin-top:4px}
+
+/* SALE ITEMS */
+.sale-items-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.sale-item-row{display:flex;gap:8px;align-items:center}
+.sale-item-row select,.sale-item-row input{flex:1;padding:8px 10px;background:#ffffff08;border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:var(--font);outline:none}
+.sale-item-row input[type=number]{width:70px;flex:none}
+.sale-item-row .price-display{min-width:80px;text-align:right;font-size:13px;color:var(--accent2)}
+.sale-item-row .remove-btn{background:none;border:none;color:var(--danger);cursor:pointer;font-size:18px;padding:0 4px}
+.sale-total{display:flex;justify-content:space-between;padding:12px;background:#7c6ef710;border-radius:8px;margin-top:8px}
+.sale-total-label{color:var(--muted);font-size:13px}
+.sale-total-val{font-size:16px;font-weight:600;color:var(--accent)}
+
+/* RESPONSIVE */
+@media(max-width:640px){
+  .charts-row{grid-template-columns:1fr}
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .nav-tabs{display:none}
+  .nav-tabs.open{display:flex;flex-direction:column;position:fixed;top:56px;left:0;right:0;background:var(--surface);border-bottom:1px solid var(--border);padding:8px;z-index:99}
+  .nav-tab{justify-content:flex-start}
+  .hamburger{display:block}
+  .view{padding:16px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">📊 <span>Sale</span>Track</div>
+  <div class="nav-tabs" id="navTabs">
+    <button class="nav-tab active" onclick="showView('dashboard',this)">Dashboard</button>
+    <button class="nav-tab" onclick="showView('items',this)">Items</button>
+    <button class="nav-tab" onclick="showView('sales',this)">Sales log</button>
+  </div>
+  <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">☰</button>
+  <div class="nav-right" id="navDate"></div>
+</nav>
+
+<!-- DASHBOARD -->
+<div class="view active" id="view-dashboard">
+  <div class="period-bar">
+    <button class="period-btn active" onclick="setPeriod('daily',this)">Daily</button>
+    <button class="period-btn" onclick="setPeriod('weekly',this)">Weekly</button>
+    <button class="period-btn" onclick="setPeriod('monthly',this)">Monthly</button>
+    <button class="period-btn" onclick="setPeriod('yearly',this)">Yearly</button>
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Total sales</div><div class="kpi-val" id="kpi-total">₱0</div><div class="kpi-sub" id="kpi-period">Today</div></div>
+    <div class="kpi"><div class="kpi-label">Orders</div><div class="kpi-val" id="kpi-orders">0</div><div class="kpi-sub" id="kpi-ordersub">transactions</div></div>
+    <div class="kpi"><div class="kpi-label">Avg. order</div><div class="kpi-val" id="kpi-avg">₱0</div><div class="kpi-sub">per transaction</div></div>
+    <div class="kpi"><div class="kpi-label">Items sold</div><div class="kpi-val" id="kpi-items">0</div><div class="kpi-sub">units total</div></div>
+  </div>
+  <div class="charts-row">
+    <div class="card"><h3 id="trend-label">Sales trend</h3><div class="bar-chart" id="trend-chart"></div></div>
+    <div class="card"><h3>Top items</h3><div class="bar-chart" id="top-items-chart"></div></div>
+  </div>
+  <div class="card">
+    <div class="section-header"><h2>Recent transactions</h2><button class="btn btn-primary btn-sm" onclick="openAddSale()">+ Add sale</button></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>#</th><th>Items</th><th>Amount</th><th>Date & time</th><th></th></tr></thead>
+      <tbody id="recent-tbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ITEMS -->
+<div class="view" id="view-items">
+  <div class="section-header">
+    <h2>Items & prices</h2>
+    <button class="btn btn-primary" onclick="openAddItem()">+ Add item</button>
+  </div>
+  <div class="items-grid" id="items-grid"></div>
+</div>
+
+<!-- SALES LOG -->
+<div class="view" id="view-sales">
+  <div class="section-header"><h2>All sales</h2><button class="btn btn-ghost btn-sm" onclick="exportCSV()">Export CSV</button></div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>#</th><th>Items</th><th>Amount</th><th>Date & time</th><th></th></tr></thead>
+    <tbody id="all-sales-tbody"></tbody>
+  </table></div>
+</div>
+
+<!-- ADD SALE MODAL -->
+<div class="overlay" id="saleModal">
+  <div class="modal">
+    <h2>New sale</h2>
+    <div id="sale-items-list" class="sale-items-list"></div>
+    <button class="btn btn-ghost btn-sm" onclick="addSaleItemRow()" style="margin-bottom:12px">+ Add item</button>
+    <div class="sale-total"><span class="sale-total-label">Total</span><span class="sale-total-val" id="sale-total-display">₱0</span></div>
+    <div class="form-group" style="margin-top:12px">
+      <label>Date & time</label>
+      <input type="datetime-local" id="sale-datetime">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('saleModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSale()">Save sale</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD ITEM MODAL -->
+<div class="overlay" id="itemModal">
+  <div class="modal">
+    <h2 id="itemModalTitle">Add item</h2>
+    <div class="form-group"><label>Item name</label><input type="text" id="item-name" placeholder="e.g. Pastil Arabic"></div>
+    <div class="form-group"><label>Price (₱)</label><input type="number" id="item-price" placeholder="0" min="0" step="0.01"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('itemModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveItem()">Save item</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let items = JSON.parse(localStorage.getItem('st_items')||'[]');
+let sales = JSON.parse(localStorage.getItem('st_sales')||'[]');
+let period = 'daily';
+let editItemIdx = null;
+
+function saveItems(){ localStorage.setItem('st_items', JSON.stringify(items)) }
+function saveSales(){ localStorage.setItem('st_sales', JSON.stringify(sales)) }
+
+// ─── NAV ─────────────────────────────────────────────────────────────────────
+function showView(id, btn){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(id==='dashboard') renderDashboard();
+  if(id==='items') renderItems();
+  if(id==='sales') renderAllSales();
+  document.getElementById('navTabs').classList.remove('open');
+}
+function toggleMenu(){
+  document.getElementById('navTabs').classList.toggle('open');
+}
+document.getElementById('navDate').textContent = new Date().toLocaleDateString('en-PH',{weekday:'short',month:'short',day:'numeric'});
+
+// ─── PERIOD ───────────────────────────────────────────────────────────────────
+function setPeriod(p, btn){
+  period = p;
+  document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderDashboard();
+}
+
+// ─── FILTER SALES BY PERIOD ───────────────────────────────────────────────────
+function filterSales(p){
+  const now = new Date();
+  return sales.filter(s=>{
+    const d = new Date(s.datetime);
+    if(p==='daily') return d.toDateString()===now.toDateString();
+    if(p==='weekly'){
+      const wStart = new Date(now); wStart.setDate(now.getDate()-now.getDay());
+      wStart.setHours(0,0,0,0);
+      return d>=wStart;
+    }
+    if(p==='monthly') return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+    if(p==='yearly') return d.getFullYear()===now.getFullYear();
+  });
+}
+
+// ─── DASHBOARD ───────────────────────────────────────────────────────────────
+function renderDashboard(){
+  const filtered = filterSales(period);
+  const total = filtered.reduce((a,s)=>a+s.total,0);
+  const orders = filtered.length;
+  const avg = orders ? total/orders : 0;
+  const units = filtered.reduce((a,s)=>a+s.lines.reduce((b,l)=>b+Number(l.qty),0),0);
+
+  const labels = {daily:'Today',weekly:'This week',monthly:'This month',yearly:'This year'};
+  document.getElementById('kpi-total').textContent = '₱'+total.toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('kpi-orders').textContent = orders;
+  document.getElementById('kpi-avg').textContent = '₱'+avg.toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('kpi-items').textContent = units;
+  document.getElementById('kpi-period').textContent = labels[period];
+
+  renderTrend(filtered);
+  renderTopItems(filtered);
+  renderRecentSales(filtered);
+}
+
+function renderTrend(filtered){
+  const now = new Date();
+  let buckets=[], label='';
+  if(period==='daily'){
+    label='Hourly (today)';
+    for(let h=0;h<24;h++) buckets.push({lbl:(h%12||12)+(h<12?'a':'p'),val:0});
+    filtered.forEach(s=>{ const h=new Date(s.datetime).getHours(); buckets[h].val+=s.total; });
+    // show only non-zero +neighbors, max 8
+    buckets=buckets.filter((b,i,a)=>b.val||a[i-1]?.val||a[i+1]?.val).slice(-8);
+  } else if(period==='weekly'){
+    label='Daily (this week)';
+    const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    for(let i=0;i<7;i++) buckets.push({lbl:days[i],val:0});
+    filtered.forEach(s=>{ const d=new Date(s.datetime).getDay(); buckets[d].val+=s.total; });
+  } else if(period==='monthly'){
+    label='Weekly (this month)';
+    for(let w=1;w<=5;w++) buckets.push({lbl:'Wk'+w,val:0});
+    filtered.forEach(s=>{ const d=new Date(s.datetime).getDate(); const w=Math.ceil(d/7)-1; if(buckets[w]) buckets[w].val+=s.total; });
+  } else {
+    label='Monthly (this year)';
+    const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    for(let m=0;m<12;m++) buckets.push({lbl:months[m],val:0});
+    filtered.forEach(s=>{ const m=new Date(s.datetime).getMonth(); buckets[m].val+=s.total; });
+  }
+  document.getElementById('trend-label').textContent=label;
+  const max=Math.max(...buckets.map(b=>b.val),1);
+  document.getElementById('trend-chart').innerHTML=buckets.map(b=>`
+    <div class="bar-row">
+      <span class="bar-lbl">${b.lbl}</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:${(b.val/max*100).toFixed(1)}%"></div></div>
+      <span class="bar-val">${b.val?'₱'+b.val.toLocaleString('en-PH',{minimumFractionDigits:0}):'—'}</span>
+    </div>`).join('');
+}
+
+function renderTopItems(filtered){
+  const map={};
+  filtered.forEach(s=>s.lines.forEach(l=>{
+    if(!map[l.name]) map[l.name]=0;
+    map[l.name]+=l.price*l.qty;
+  }));
+  const sorted=Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const max=sorted[0]?.[1]||1;
+  document.getElementById('top-items-chart').innerHTML= sorted.length
+    ? sorted.map(([name,val])=>`
+      <div class="bar-row">
+        <span class="bar-lbl item-lbl">${name}</span>
+        <div class="bar-bg"><div class="bar-fill" style="width:${(val/max*100).toFixed(1)}%"></div></div>
+        <span class="bar-val">₱${val.toLocaleString('en-PH',{minimumFractionDigits:0})}</span>
+      </div>`).join('')
+    : '<p style="color:var(--muted);font-size:13px">No sales yet</p>';
+}
+
+function renderRecentSales(filtered){
+  const sorted=[...filtered].sort((a,b)=>new Date(b.datetime)-new Date(a.datetime)).slice(0,8);
+  const tbody=document.getElementById('recent-tbody');
+  tbody.innerHTML= sorted.length
+    ? sorted.map((s,i)=>saleRow(s,i+1)).join('')
+    : '<tr><td colspan="5" class="tbl-empty">No sales this period</td></tr>';
+}
+
+function saleRow(s, num){
+  const summary = s.lines.map(l=>`${l.name} ×${l.qty}`).join(', ');
+  const dt = new Date(s.datetime).toLocaleString('en-PH',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  return `<tr>
+    <td style="color:var(--muted)">#${String(s.id).padStart(3,'0')}</td>
+    <td>${summary}</td>
+    <td style="color:var(--accent2);font-weight:500">₱${s.total.toLocaleString('en-PH',{minimumFractionDigits:2})}</td>
+    <td style="color:var(--muted)">${dt}</td>
+    <td><button class="btn btn-danger btn-sm" onclick="deleteSale(${s.id})">✕</button></td>
+  </tr>`;
+}
+
+// ─── ALL SALES ────────────────────────────────────────────────────────────────
+function renderAllSales(){
+  const sorted=[...sales].sort((a,b)=>new Date(b.datetime)-new Date(a.datetime));
+  const tbody=document.getElementById('all-sales-tbody');
+  tbody.innerHTML= sorted.length
+    ? sorted.map((s,i)=>saleRow(s,i+1)).join('')
+    : '<tr><td colspan="5" class="tbl-empty">No sales recorded yet</td></tr>';
+}
+
+function deleteSale(id){
+  if(!confirm('Delete this sale?')) return;
+  sales=sales.filter(s=>s.id!==id);
+  saveSales();
+  renderDashboard();
+  renderAllSales();
+}
+
+// ─── ADD SALE ─────────────────────────────────────────────────────────────────
+function openAddSale(){
+  if(!items.length){ alert('Add items first in the Items tab.'); return; }
+  document.getElementById('sale-items-list').innerHTML='';
+  addSaleItemRow();
+  const now=new Date();
+  now.setMinutes(now.getMinutes()-now.getTimezoneOffset());
+  document.getElementById('sale-datetime').value=now.toISOString().slice(0,16);
+  updateSaleTotal();
+  document.getElementById('saleModal').classList.add('open');
+}
+
+function addSaleItemRow(){
+  const list=document.getElementById('sale-items-list');
+  const row=document.createElement('div');
+  row.className='sale-item-row';
+  const opts=items.map(it=>`<option value="${it.price}" data-name="${it.name}">${it.name}</option>`).join('');
+  row.innerHTML=`
+    <select onchange="onItemSelect(this)">${opts}</select>
+    <input type="number" min="1" value="1" placeholder="Qty" oninput="updateSaleTotal()">
+    <span class="price-display">₱${Number(items[0]?.price||0).toLocaleString('en-PH',{minimumFractionDigits:2})}</span>
+    <button class="remove-btn" onclick="removeSaleRow(this)">×</button>`;
+  list.appendChild(row);
+  updateSaleTotal();
+}
+
+function onItemSelect(sel){
+  const price=parseFloat(sel.value)||0;
+  sel.parentElement.querySelector('.price-display').textContent='₱'+price.toLocaleString('en-PH',{minimumFractionDigits:2});
+  updateSaleTotal();
+}
+
+function removeSaleRow(btn){
+  btn.parentElement.remove();
+  updateSaleTotal();
+}
+
+function updateSaleTotal(){
+  let total=0;
+  document.querySelectorAll('#sale-items-list .sale-item-row').forEach(row=>{
+    const price=parseFloat(row.querySelector('select').value)||0;
+    const qty=parseInt(row.querySelector('input').value)||0;
+    const sub=price*qty;
+    row.querySelector('.price-display').textContent='₱'+sub.toLocaleString('en-PH',{minimumFractionDigits:2});
+    total+=sub;
+  });
+  document.getElementById('sale-total-display').textContent='₱'+total.toLocaleString('en-PH',{minimumFractionDigits:2});
+}
+
+function saveSale(){
+  const rows=document.querySelectorAll('#sale-items-list .sale-item-row');
+  const lines=[];
+  rows.forEach(row=>{
+    const sel=row.querySelector('select');
+    const qty=parseInt(row.querySelector('input').value)||0;
+    const price=parseFloat(sel.value)||0;
+    const name=sel.options[sel.selectedIndex].dataset.name;
+    if(qty>0) lines.push({name,price,qty});
+  });
+  if(!lines.length){ alert('Add at least one item.'); return; }
+  const total=lines.reduce((a,l)=>a+l.price*l.qty,0);
+  const dt=document.getElementById('sale-datetime').value;
+  const id=(sales.length?Math.max(...sales.map(s=>s.id))+1:1);
+  sales.push({id,lines,total,datetime:dt});
+  saveSales();
+  closeModal('saleModal');
+  renderDashboard();
+}
+
+// ─── ITEMS ────────────────────────────────────────────────────────────────────
+function renderItems(){
+  const grid=document.getElementById('items-grid');
+  grid.innerHTML= items.length
+    ? items.map((it,i)=>`
+      <div class="item-card">
+        <div class="item-name">${it.name}</div>
+        <div class="item-price">₱${Number(it.price).toLocaleString('en-PH',{minimumFractionDigits:2})}</div>
+        <div class="item-actions">
+          <button class="btn btn-ghost btn-sm" onclick="openEditItem(${i})">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteItem(${i})">Delete</button>
+        </div>
+      </div>`).join('')
+    : '<p style="color:var(--muted);padding:16px">No items yet. Add your first item!</p>';
+}
+
+function openAddItem(){
+  editItemIdx=null;
+  document.getElementById('itemModalTitle').textContent='Add item';
+  document.getElementById('item-name').value='';
+  document.getElementById('item-price').value='';
+  document.getElementById('itemModal').classList.add('open');
+}
+function openEditItem(i){
+  editItemIdx=i;
+  document.getElementById('itemModalTitle').textContent='Edit item';
+  document.getElementById('item-name').value=items[i].name;
+  document.getElementById('item-price').value=items[i].price;
+  document.getElementById('itemModal').classList.add('open');
+}
+function saveItem(){
+  const name=document.getElementById('item-name').value.trim();
+  const price=parseFloat(document.getElementById('item-price').value);
+  if(!name||isNaN(price)||price<0){ alert('Enter a valid name and price.'); return; }
+  if(editItemIdx===null) items.push({name,price});
+  else items[editItemIdx]={name,price};
+  saveItems();
+  closeModal('itemModal');
+  renderItems();
+}
+function deleteItem(i){
+  if(!confirm(`Delete "${items[i].name}"?`)) return;
+  items.splice(i,1);
+  saveItems();
+  renderItems();
+}
+
+// ─── EXPORT CSV ───────────────────────────────────────────────────────────────
+function exportCSV(){
+  const rows=[['ID','Items','Total','Date & Time']];
+  [...sales].sort((a,b)=>new Date(b.datetime)-new Date(a.datetime)).forEach(s=>{
+    rows.push([s.id, s.lines.map(l=>`${l.name} x${l.qty}`).join(' | '), s.total.toFixed(2), s.datetime]);
+  });
+  const csv=rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='sales_export.csv';
+  a.click();
+}
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+function closeModal(id){ document.getElementById(id).classList.remove('open') }
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open') }));
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+renderDashboard();
+renderItems();
+</script>
+</body>
+</html>
