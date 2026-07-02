@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -213,6 +213,18 @@ tr:hover td{background:#ffffff04}
   </div>
 </div>
 
+<!-- UPDATE PASSWORD SCREEN (after reset link click) -->
+<div class="screen" id="updatePasswordScreen">
+  <div class="auth-box">
+    <div class="auth-logo">📊 <span>Sale</span>Track</div>
+    <div class="auth-sub">Set your new password</div>
+    <div class="auth-err" id="updatePassErr"></div>
+    <div class="form-group"><label>New password</label><input type="password" id="newPass" placeholder="Min. 6 characters"></div>
+    <div class="form-group"><label>Confirm password</label><input type="password" id="confirmPass" placeholder="Repeat password"></div>
+    <button class="btn btn-primary" onclick="doUpdatePassword()" id="updatePassBtn">Set password & sign in</button>
+  </div>
+</div>
+
 <!-- NO LICENSE SCREEN -->
 <div class="screen" id="noLicenseScreen">
   <div class="auth-box">
@@ -380,6 +392,13 @@ let acState = [];
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 async function init(){
+  // Detect password recovery token in URL hash
+  const hash = window.location.hash;
+  if(hash.includes('type=recovery') || hash.includes('type=invite')){
+    // Let onAuthStateChange handle it
+    document.getElementById('loadingOverlay').classList.add('hidden');
+    return;
+  }
   const { data: { session } } = await sb.auth.getSession();
   if(session){ await onSignedIn(session.user); }
   else { showScreen('loginScreen'); }
@@ -387,9 +406,32 @@ async function init(){
 }
 
 sb.auth.onAuthStateChange(async (event, session) => {
+  document.getElementById('loadingOverlay').classList.add('hidden');
+  if(event === 'PASSWORD_RECOVERY'){
+    // User clicked reset/invite link — show set password screen
+    showScreen('updatePasswordScreen');
+    return;
+  }
   if(event === 'SIGNED_IN' && session){ await onSignedIn(session.user); }
   if(event === 'SIGNED_OUT'){ showScreen('loginScreen'); document.getElementById('mainApp').style.display='none'; }
 });
+
+async function doUpdatePassword(){
+  const pass = document.getElementById('newPass').value;
+  const confirm = document.getElementById('confirmPass').value;
+  const err = document.getElementById('updatePassErr');
+  const btn = document.getElementById('updatePassBtn');
+  err.classList.remove('show');
+  if(pass.length < 6){ err.textContent='Password must be at least 6 characters.'; err.classList.add('show'); return; }
+  if(pass !== confirm){ err.textContent='Passwords do not match.'; err.classList.add('show'); return; }
+  btn.innerHTML='<span class="spinner"></span>Saving…'; btn.disabled=true;
+  const { error } = await sb.auth.updateUser({ password: pass });
+  if(error){ err.textContent=error.message; err.classList.add('show'); btn.innerHTML='Set password & sign in'; btn.disabled=false; return; }
+  showToast('Password set! Signing you in…','success');
+  // After update, session is active — sign in flow continues via onAuthStateChange SIGNED_IN
+  const { data: { session } } = await sb.auth.getSession();
+  if(session) await onSignedIn(session.user);
+}
 
 async function onSignedIn(user){
   currentUser = user;
