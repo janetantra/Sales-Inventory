@@ -168,6 +168,22 @@ tr:hover td{background:#ffffff04}
 .loading-overlay{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px}
 .loading-overlay.hidden{display:none}
 
+/* ── DATE-TIME RANGE FILTER ── */
+.range-bar{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px;overflow:hidden}
+.range-toggle{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;font-size:13px;color:var(--muted);user-select:none;transition:background .15s}
+.range-toggle:hover{background:#ffffff05;color:var(--text)}
+.range-toggle.active{color:var(--accent)}
+.range-inputs{padding:12px 14px 14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:10px}
+.range-row{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.range-field{display:flex;flex-direction:column;gap:5px;flex:1;min-width:180px}
+.range-field label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.range-field input[type=datetime-local]{width:100%;padding:8px 10px;background:#ffffff08;border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:border .15s}
+.range-field input[type=datetime-local]:focus{border-color:var(--accent)}
+.range-sep{color:var(--muted);font-size:18px;padding-bottom:8px;flex-shrink:0}
+.range-clear-btn{padding:8px 12px;border-radius:8px;border:1px solid var(--danger);background:none;color:var(--danger);font-size:12px;cursor:pointer;font-family:var(--font);white-space:nowrap;align-self:flex-end}
+.range-clear-btn:hover{background:#f8717115}
+.range-active-badge{background:#7c6ef720;border:1px solid var(--accent);color:var(--accent);border-radius:8px;padding:8px 12px;font-size:12px;font-weight:500}
+
 /* ── CHANGE PASSWORD (in-app) ── */
 .change-pass-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;max-width:400px;margin-bottom:20px}
 .change-pass-box h3{font-size:14px;font-weight:600;margin-bottom:14px}
@@ -331,10 +347,38 @@ tr:hover td{background:#ffffff04}
     <!-- Item filter -->
     <div class="filter-bar">
       <label>Filter by item:</label>
-      <select class="filter-select" id="itemFilter" onchange="applyItemFilter()">
-        <option value="">All items</option>
-      </select>
+      <div class="ac-wrap" style="flex:1;max-width:280px" id="filterAcWrap">
+        <input class="ac-input" type="text" id="itemFilterInput" placeholder="Type item name…" autocomplete="off"
+          oninput="onFilterAcInput(this)"
+          onfocus="onFilterAcInput(this)"
+          onkeydown="onFilterAcKeydown(event)">
+        <div class="ac-dropdown" id="filterAcDrop"></div>
+      </div>
+      <button id="filterClearBtn" onclick="clearItemFilter()" style="display:none;background:none;border:1px solid var(--danger);color:var(--danger);padding:5px 10px;border-radius:6px;font-size:12px;cursor:pointer;font-family:var(--font)">✕ Clear</button>
       <span class="filter-badge" id="filterBadge" style="display:none"></span>
+    </div>
+
+    <!-- Date-time range filter -->
+    <div class="range-bar" id="rangeBar">
+      <div class="range-toggle" onclick="toggleRangeFilter()">
+        <span>🕐 Date &amp; time range</span>
+        <span id="rangeToggleArrow" style="transition:transform .2s">▸</span>
+      </div>
+      <div class="range-inputs" id="rangeInputs" style="display:none">
+        <div class="range-row">
+          <div class="range-field">
+            <label>From</label>
+            <input type="datetime-local" id="rangeFrom" onchange="applyRange()">
+          </div>
+          <div class="range-sep">→</div>
+          <div class="range-field">
+            <label>To</label>
+            <input type="datetime-local" id="rangeTo" onchange="applyRange()">
+          </div>
+          <button class="range-clear-btn" onclick="clearRange()">✕ Clear range</button>
+        </div>
+        <div id="rangeActiveBadge" style="display:none" class="range-active-badge"></div>
+      </div>
     </div>
     <!-- Item total when filtered -->
     <div class="item-sales-total" id="itemSalesTotal">
@@ -412,6 +456,19 @@ tr:hover td{background:#ffffff04}
     <div id="sale-items-list" class="sale-items-list"></div>
     <button class="btn-ghost btn-sm" style="padding:7px 14px;font-size:12px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;cursor:pointer;font-family:var(--font);margin-bottom:12px" onclick="addSaleItemRow()">+ Add item</button>
     <div class="sale-total"><span class="sale-total-label">Total</span><span class="sale-total-val" id="sale-total-display">₱0</span></div>
+    <!-- Amount received + change -->
+    <div style="margin-top:12px;background:#ffffff06;border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <label style="font-size:12px;color:var(--muted);white-space:nowrap;min-width:110px">Amount received (₱)</label>
+        <input type="number" id="amountReceived" min="0" step="1" placeholder="0"
+          oninput="calcChange()"
+          style="flex:1;padding:8px 10px;background:#ffffff08;border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;font-family:var(--font);outline:none;font-weight:500">
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#5eead41a;border:1px solid #5eead430;border-radius:8px">
+        <span style="font-size:12px;color:var(--muted)">Change</span>
+        <span id="changeDisplay" style="font-size:20px;font-weight:600;color:var(--accent2)">₱0.00</span>
+      </div>
+    </div>
     <div class="form-group" style="margin-top:12px"><label>Date & time</label><input type="datetime-local" id="sale-datetime"></div>
     <div class="modal-footer">
       <button class="btn-ghost" style="width:auto;padding:8px 16px;font-size:13px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;cursor:pointer;font-family:var(--font)" onclick="closeModal('saleModal')">Cancel</button>
@@ -617,11 +674,16 @@ async function loadSales(){
 }
 
 // ─── PERIOD ───────────────────────────────────────────────────────────────────
-let selectedDate = null; // for calendar filter
-let itemFilter = '';     // for item filter
+let selectedDate = null;
+let itemFilter = '';
+let rangeFrom = null;
+let rangeTo = null;
+let rangeOpen = false;
 
 function setPeriod(p, btn){
   period=p; selectedDate=null;
+  // clear range when switching period
+  clearRange(true);
   document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('calBtn').classList.remove('active-date');
@@ -632,6 +694,13 @@ function setPeriod(p, btn){
 
 function filterSales(p){
   const now = new Date();
+  // Range filter takes priority over everything
+  if(rangeFrom && rangeTo){
+    return sales.filter(s => {
+      const d = new Date(s.datetime);
+      return d >= rangeFrom && d <= rangeTo;
+    });
+  }
   if(selectedDate){
     return sales.filter(s => new Date(s.datetime).toDateString()===selectedDate.toDateString());
   }
@@ -644,26 +713,102 @@ function filterSales(p){
   });
 }
 
-function applyItemFilter(){
-  itemFilter = document.getElementById('itemFilter').value;
-  const badge = document.getElementById('filterBadge');
-  const totalBox = document.getElementById('itemSalesTotal');
-  if(itemFilter){
-    badge.textContent = itemFilter; badge.style.display='';
-    totalBox.classList.add('show');
-  } else {
-    badge.style.display='none';
-    totalBox.classList.remove('show');
+// ─── DATE-TIME RANGE FILTER ───────────────────────────────────────────────────
+function toggleRangeFilter(){
+  rangeOpen = !rangeOpen;
+  document.getElementById('rangeInputs').style.display = rangeOpen ? 'flex' : 'none';
+  document.getElementById('rangeToggleArrow').style.transform = rangeOpen ? 'rotate(90deg)' : '';
+  document.getElementById('rangeToggleArrow').textContent = rangeOpen ? '▾' : '▸';
+  document.querySelector('.range-toggle').classList.toggle('active', rangeOpen);
+}
+
+function applyRange(){
+  const fromVal = document.getElementById('rangeFrom').value;
+  const toVal   = document.getElementById('rangeTo').value;
+  if(!fromVal || !toVal){ rangeFrom=null; rangeTo=null; renderDashboard(); return; }
+  rangeFrom = new Date(fromVal);
+  rangeTo   = new Date(toVal);
+  if(rangeFrom > rangeTo){
+    document.getElementById('rangeActiveBadge').textContent = '⚠ "From" must be before "To"';
+    document.getElementById('rangeActiveBadge').style.display='';
+    document.getElementById('rangeActiveBadge').style.color='var(--danger)';
+    rangeFrom=null; rangeTo=null; renderDashboard(); return;
   }
+  // Deactivate period & calendar when range is active
+  document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+  selectedDate=null;
+  document.getElementById('calBtn').classList.remove('active-date');
+  document.getElementById('calBtnLabel').textContent='Pick date';
+
+  const fmt = d => d.toLocaleString('en-PH',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  document.getElementById('rangeActiveBadge').style.color='var(--accent)';
+  document.getElementById('rangeActiveBadge').textContent=`📊 Showing: ${fmt(rangeFrom)} → ${fmt(rangeTo)}`;
+  document.getElementById('rangeActiveBadge').style.display='';
   renderDashboard();
 }
 
-function populateItemFilter(){
-  const sel = document.getElementById('itemFilter');
-  const cur = sel.value;
-  sel.innerHTML = '<option value="">All items</option>' +
-    items.map(it=>`<option value="${it.name}" ${it.name===cur?'selected':''}>${it.name}</option>`).join('');
+function clearRange(silent=false){
+  rangeFrom=null; rangeTo=null;
+  const fromEl = document.getElementById('rangeFrom');
+  const toEl   = document.getElementById('rangeTo');
+  if(fromEl) fromEl.value='';
+  if(toEl)   toEl.value='';
+  const badge = document.getElementById('rangeActiveBadge');
+  if(badge) badge.style.display='none';
+  if(!silent){
+    // restore Daily as active
+    document.querySelectorAll('.period-btn').forEach((b,i)=>{ if(i===0) b.classList.add('active'); else b.classList.remove('active'); });
+    period='daily';
+    renderDashboard();
+  }
 }
+
+// ─── ITEM FILTER AUTOCOMPLETE ─────────────────────────────────────────────────
+function onFilterAcInput(input){
+  const q = input.value.trim().toLowerCase();
+  const drop = document.getElementById('filterAcDrop');
+  const filtered = q ? items.filter(it => it.name.toLowerCase().includes(q)) : items;
+  if(!filtered.length){
+    drop.innerHTML='<div style="padding:9px 12px;font-size:13px;color:var(--muted)">No items found</div>';
+    drop.classList.add('open'); return;
+  }
+  drop.innerHTML = filtered.map(it=>`
+    <div class="ac-option" onclick="selectFilterItem('${it.name.replace(/'/g,"\\'")}')">
+      <span class="ac-option-name">${it.name}</span>
+      <span class="ac-option-price">₱${Number(it.price).toLocaleString('en-PH',{minimumFractionDigits:2})}</span>
+    </div>`).join('');
+  drop.classList.add('open');
+}
+function onFilterAcKeydown(e){
+  const drop = document.getElementById('filterAcDrop');
+  const opts = drop.querySelectorAll('.ac-option');
+  const focused = drop.querySelector('.ac-option.focused');
+  let fidx = -1; opts.forEach((o,i)=>{ if(o===focused) fidx=i; });
+  if(e.key==='ArrowDown'){ e.preventDefault(); const n=Math.min(fidx+1,opts.length-1); opts.forEach(o=>o.classList.remove('focused')); if(opts[n]) opts[n].classList.add('focused'); }
+  else if(e.key==='ArrowUp'){ e.preventDefault(); const n=Math.max(fidx-1,0); opts.forEach(o=>o.classList.remove('focused')); if(opts[n]) opts[n].classList.add('focused'); }
+  else if(e.key==='Enter'){ e.preventDefault(); if(focused) selectFilterItem(focused.querySelector('.ac-option-name').textContent); }
+  else if(e.key==='Escape'){ drop.classList.remove('open'); }
+}
+function selectFilterItem(name){
+  itemFilter = name;
+  document.getElementById('itemFilterInput').value = name;
+  document.getElementById('filterAcDrop').classList.remove('open');
+  document.getElementById('filterBadge').textContent = name;
+  document.getElementById('filterBadge').style.display = '';
+  document.getElementById('filterClearBtn').style.display = '';
+  document.getElementById('itemSalesTotal').classList.add('show');
+  renderDashboard();
+}
+function clearItemFilter(){
+  itemFilter = '';
+  document.getElementById('itemFilterInput').value = '';
+  document.getElementById('filterBadge').style.display = 'none';
+  document.getElementById('filterClearBtn').style.display = 'none';
+  document.getElementById('itemSalesTotal').classList.remove('show');
+  renderDashboard();
+}
+function applyItemFilter(){ /* kept for compat */ }
+function populateItemFilter(){ /* no longer needed — autocomplete driven */ }
 
 // ─── CALENDAR ─────────────────────────────────────────────────────────────────
 let calYear, calMonth;
@@ -713,19 +858,21 @@ function clearCalDate(){
 document.addEventListener('click',e=>{
   if(!e.target.closest('#calWrap')) document.getElementById('calPopup')?.classList.remove('open');
   if(!e.target.closest('.ac-wrap')) document.querySelectorAll('.ac-dropdown').forEach(d=>d.classList.remove('open'));
+  if(!e.target.closest('#filterAcWrap')) document.getElementById('filterAcDrop')?.classList.remove('open');
 });
 
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
 function renderDashboard(){
   let filtered = filterSales(period);
+  const fmtDt = d => d.toLocaleString('en-PH',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  const rangeLabel = rangeFrom && rangeTo ? `${fmtDt(rangeFrom)} → ${fmtDt(rangeTo)}` : null;
   // Apply item filter
   if(itemFilter){
     filtered = filtered.filter(s=>(s.lines||[]).some(l=>l.name===itemFilter));
-    // Show item-specific total
     const itemTotal = filtered.reduce((a,s)=>a+(s.lines||[]).filter(l=>l.name===itemFilter).reduce((b,l)=>b+l.price*l.qty,0),0);
-    const periodLabel = selectedDate
+    const periodLabel = rangeLabel || (selectedDate
       ? selectedDate.toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})
-      : {daily:'today',weekly:'this week',monthly:'this month',yearly:'this year'}[period];
+      : {daily:'today',weekly:'this week',monthly:'this month',yearly:'this year'}[period]);
     document.getElementById('itemSalesHeader').textContent=`Total sales for "${itemFilter}" — ${periodLabel}`;
     document.getElementById('itemSalesVal').textContent='₱'+itemTotal.toLocaleString('en-PH',{minimumFractionDigits:2});
   }
@@ -734,9 +881,9 @@ function renderDashboard(){
   const avg = orders ? total/orders : 0;
   const units = filtered.reduce((a,s)=>a+(s.lines||[]).reduce((b,l)=>b+Number(l.qty),0),0);
   const labels={daily:'Today',weekly:'This week',monthly:'This month',yearly:'This year'};
-  const periodSub = selectedDate
+  const periodSub = rangeLabel || (selectedDate
     ? selectedDate.toLocaleDateString('en-PH',{weekday:'short',month:'short',day:'numeric',year:'numeric'})
-    : labels[period];
+    : labels[period]);
   document.getElementById('kpi-total').textContent='₱'+total.toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
   document.getElementById('kpi-orders').textContent=orders;
   document.getElementById('kpi-avg').textContent='₱'+avg.toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -825,6 +972,9 @@ function openAddSale(){
   if(!items.length){showToast('Add items first.','error');return;}
   acState=[];
   document.getElementById('sale-items-list').innerHTML='';
+  document.getElementById('amountReceived').value='';
+  document.getElementById('changeDisplay').textContent='₱0.00';
+  document.getElementById('changeDisplay').style.color='var(--accent2)';
   const now=new Date(); now.setMinutes(now.getMinutes()-now.getTimezoneOffset());
   document.getElementById('sale-datetime').value=now.toISOString().slice(0,16);
   addSaleItemRow(); updateSaleTotal();
@@ -893,6 +1043,7 @@ function updateSaleTotal(){
     } else { const el=document.getElementById('ac-price-'+idx); if(el) el.textContent='—'; }
   });
   document.getElementById('sale-total-display').textContent='₱'+total.toLocaleString('en-PH',{minimumFractionDigits:2});
+  calcChange();
 }
 async function saveSale(){
   const lines=[];
@@ -910,7 +1061,22 @@ async function saveSale(){
   closeModal('saleModal');
   await loadSales(); renderDashboard();
 }
-// ac-wrap close handled by global click listener above
+// ─── CHANGE CALCULATOR ────────────────────────────────────────────────────────
+function calcChange(){
+  const received = parseFloat(document.getElementById('amountReceived').value) || 0;
+  const totalText = document.getElementById('sale-total-display').textContent.replace('₱','').replace(/,/g,'');
+  const total = parseFloat(totalText) || 0;
+  const change = received - total;
+  const el = document.getElementById('changeDisplay');
+  if(received === 0){ el.textContent='₱0.00'; el.style.color='var(--accent2)'; return; }
+  if(change < 0){
+    el.textContent='Short ₱'+Math.abs(change).toLocaleString('en-PH',{minimumFractionDigits:2});
+    el.style.color='var(--danger)';
+  } else {
+    el.textContent='₱'+change.toLocaleString('en-PH',{minimumFractionDigits:2});
+    el.style.color='var(--accent2)';
+  }
+}
 
 // ─── ITEMS ────────────────────────────────────────────────────────────────────
 function renderItems(){
