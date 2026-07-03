@@ -168,6 +168,44 @@ tr:hover td{background:#ffffff04}
 .loading-overlay{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px}
 .loading-overlay.hidden{display:none}
 
+/* ── CHANGE PASSWORD (in-app) ── */
+.change-pass-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;max-width:400px;margin-bottom:20px}
+.change-pass-box h3{font-size:14px;font-weight:600;margin-bottom:14px}
+
+/* ── CALENDAR PICKER ── */
+.calendar-wrap{position:relative;display:inline-block}
+.cal-btn{padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-size:12px;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:6px;white-space:nowrap}
+.cal-btn.active-date{border-color:var(--accent);color:var(--accent);background:#7c6ef720}
+.cal-popup{position:absolute;top:calc(100% + 6px);left:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;z-index:150;min-width:280px;box-shadow:0 8px 32px #00000060;display:none}
+.cal-popup.open{display:block}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-header span{font-size:13px;font-weight:500}
+.cal-nav{background:none;border:1px solid var(--border);color:var(--muted);width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
+.cal-nav:hover{color:var(--text);border-color:var(--muted)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-day-name{text-align:center;font-size:10px;color:var(--muted);padding:4px 0}
+.cal-day{text-align:center;padding:6px 2px;font-size:12px;border-radius:6px;cursor:pointer;color:var(--muted)}
+.cal-day:hover{background:var(--card);color:var(--text)}
+.cal-day.today{color:var(--accent);font-weight:600}
+.cal-day.selected{background:var(--accent);color:#fff !important;font-weight:500}
+.cal-day.has-sales{position:relative}
+.cal-day.has-sales::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--accent2)}
+.cal-day.empty{cursor:default}
+.cal-clear{width:100%;margin-top:10px;padding:7px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--muted);font-size:12px;cursor:pointer;font-family:var(--font)}
+.cal-clear:hover{color:var(--danger);border-color:var(--danger)}
+
+/* ── ITEM FILTER ── */
+.filter-bar{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.filter-bar label{font-size:12px;color:var(--muted);white-space:nowrap}
+.filter-select{padding:6px 10px;background:#ffffff08;border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-family:var(--font);outline:none;cursor:pointer;max-width:200px}
+.filter-select:focus{border-color:var(--accent)}
+.filter-select option{background:var(--surface)}
+.filter-badge{background:#7c6ef720;color:var(--accent);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;white-space:nowrap}
+.item-sales-total{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;display:none}
+.item-sales-total.show{display:block}
+.item-sales-header{font-size:12px;color:var(--muted);margin-bottom:4px}
+.item-sales-val{font-size:22px;font-weight:600;color:var(--accent2)}
+
 /* ── RESPONSIVE ── */
 @media(max-width:640px){
   .charts-row{grid-template-columns:1fr}
@@ -256,6 +294,7 @@ tr:hover td{background:#ffffff04}
       <button class="nav-tab" onclick="showView('items',this)">Items</button>
       <button class="nav-tab" onclick="showView('sales',this)">Sales log</button>
       <button class="nav-tab" id="adminTabBtn" style="display:none" onclick="showView('admin',this)">⚙️ Admin</button>
+      <button class="nav-tab" onclick="showView('account',this)">Account</button>
     </div>
     <button class="hamburger" onclick="toggleMenu()">☰</button>
     <div class="nav-right">
@@ -266,12 +305,43 @@ tr:hover td{background:#ffffff04}
 
   <!-- DASHBOARD -->
   <div class="view active" id="view-dashboard">
-    <div class="period-bar">
-      <button class="period-btn active" onclick="setPeriod('daily',this)">Daily</button>
-      <button class="period-btn" onclick="setPeriod('weekly',this)">Weekly</button>
-      <button class="period-btn" onclick="setPeriod('monthly',this)">Monthly</button>
-      <button class="period-btn" onclick="setPeriod('yearly',this)">Yearly</button>
+    <!-- Period tabs + calendar picker row -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:24px;flex-wrap:wrap">
+      <div class="period-bar" style="margin-bottom:0;flex:1;min-width:0">
+        <button class="period-btn active" onclick="setPeriod('daily',this)">Daily</button>
+        <button class="period-btn" onclick="setPeriod('weekly',this)">Weekly</button>
+        <button class="period-btn" onclick="setPeriod('monthly',this)">Monthly</button>
+        <button class="period-btn" onclick="setPeriod('yearly',this)">Yearly</button>
+      </div>
+      <!-- Calendar picker -->
+      <div class="calendar-wrap" id="calWrap">
+        <button class="cal-btn" id="calBtn" onclick="toggleCal()">📅 <span id="calBtnLabel">Pick date</span></button>
+        <div class="cal-popup" id="calPopup">
+          <div class="cal-header">
+            <button class="cal-nav" onclick="calNav(-1)">‹</button>
+            <span id="calMonthLabel"></span>
+            <button class="cal-nav" onclick="calNav(1)">›</button>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+          <button class="cal-clear" onclick="clearCalDate()">Clear — back to period view</button>
+        </div>
+      </div>
     </div>
+
+    <!-- Item filter -->
+    <div class="filter-bar">
+      <label>Filter by item:</label>
+      <select class="filter-select" id="itemFilter" onchange="applyItemFilter()">
+        <option value="">All items</option>
+      </select>
+      <span class="filter-badge" id="filterBadge" style="display:none"></span>
+    </div>
+    <!-- Item total when filtered -->
+    <div class="item-sales-total" id="itemSalesTotal">
+      <div class="item-sales-header" id="itemSalesHeader">Total sales for item</div>
+      <div class="item-sales-val" id="itemSalesVal">₱0</div>
+    </div>
+
     <div class="kpi-grid">
       <div class="kpi"><div class="kpi-label">Total sales</div><div class="kpi-val" id="kpi-total">₱0</div><div class="kpi-sub" id="kpi-period">Today</div></div>
       <div class="kpi"><div class="kpi-label">Orders</div><div class="kpi-val" id="kpi-orders">0</div><div class="kpi-sub">transactions</div></div>
@@ -314,6 +384,24 @@ tr:hover td{background:#ffffff04}
       <button style="padding:7px 14px;font-size:13px;background:var(--accent);border:none;color:#fff;border-radius:8px;cursor:pointer;font-family:var(--font);font-weight:500" onclick="openAddLicense()">+ Add license</button>
     </div>
     <div id="licenses-list"></div>
+  </div>
+
+  <!-- ACCOUNT -->
+  <div class="view" id="view-account">
+    <div class="section-header"><h2>Account settings</h2></div>
+    <div class="change-pass-box">
+      <h3>Change password</h3>
+      <div class="auth-err" id="cpErr"></div>
+      <div class="auth-err" id="cpOk" style="background:#34d39915;border-color:#34d39940;color:var(--success)"></div>
+      <div class="form-group"><label>New password</label><input type="password" id="cpNew" placeholder="Min. 6 characters"></div>
+      <div class="form-group"><label>Confirm new password</label><input type="password" id="cpConfirm" placeholder="Repeat new password"></div>
+      <button class="btn btn-primary" onclick="changePassword()" id="cpBtn" style="margin-top:4px">Update password</button>
+    </div>
+    <div class="change-pass-box">
+      <h3>Account info</h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:6px">Signed in as</p>
+      <p style="font-size:14px;font-weight:500" id="accountEmail">—</p>
+    </div>
   </div>
 </div>
 
@@ -512,6 +600,7 @@ function showView(id, btn){
   if(id==='items'){ document.getElementById('items-search').value=''; renderItems(); }
   if(id==='sales') renderAllSales();
   if(id==='admin') loadLicenses();
+  if(id==='account') showAccountView();
   document.getElementById('navTabs').classList.remove('open');
 }
 function toggleMenu(){ document.getElementById('navTabs').classList.toggle('open'); }
@@ -520,6 +609,7 @@ function toggleMenu(){ document.getElementById('navTabs').classList.toggle('open
 async function loadItems(){
   const { data } = await sb.from('items').select('*').order('name');
   items = data || [];
+  populateItemFilter();
 }
 async function loadSales(){
   const { data } = await sb.from('sales').select('*').order('datetime', {ascending:false});
@@ -527,14 +617,24 @@ async function loadSales(){
 }
 
 // ─── PERIOD ───────────────────────────────────────────────────────────────────
+let selectedDate = null; // for calendar filter
+let itemFilter = '';     // for item filter
+
 function setPeriod(p, btn){
-  period=p;
+  period=p; selectedDate=null;
   document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  document.getElementById('calBtn').classList.remove('active-date');
+  document.getElementById('calBtnLabel').textContent='Pick date';
+  document.getElementById('calPopup').classList.remove('open');
   renderDashboard();
 }
+
 function filterSales(p){
   const now = new Date();
+  if(selectedDate){
+    return sales.filter(s => new Date(s.datetime).toDateString()===selectedDate.toDateString());
+  }
   return sales.filter(s => {
     const d = new Date(s.datetime);
     if(p==='daily') return d.toDateString()===now.toDateString();
@@ -544,19 +644,104 @@ function filterSales(p){
   });
 }
 
+function applyItemFilter(){
+  itemFilter = document.getElementById('itemFilter').value;
+  const badge = document.getElementById('filterBadge');
+  const totalBox = document.getElementById('itemSalesTotal');
+  if(itemFilter){
+    badge.textContent = itemFilter; badge.style.display='';
+    totalBox.classList.add('show');
+  } else {
+    badge.style.display='none';
+    totalBox.classList.remove('show');
+  }
+  renderDashboard();
+}
+
+function populateItemFilter(){
+  const sel = document.getElementById('itemFilter');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">All items</option>' +
+    items.map(it=>`<option value="${it.name}" ${it.name===cur?'selected':''}>${it.name}</option>`).join('');
+}
+
+// ─── CALENDAR ─────────────────────────────────────────────────────────────────
+let calYear, calMonth;
+function toggleCal(){
+  const pop = document.getElementById('calPopup');
+  if(pop.classList.contains('open')){ pop.classList.remove('open'); return; }
+  const now = new Date();
+  calYear = now.getFullYear(); calMonth = now.getMonth();
+  renderCal(); pop.classList.add('open');
+}
+function calNav(dir){ calMonth+=dir; if(calMonth>11){calMonth=0;calYear++;}else if(calMonth<0){calMonth=11;calYear--;} renderCal(); }
+function renderCal(){
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('calMonthLabel').textContent=months[calMonth]+' '+calYear;
+  const salesDates=new Set(sales.map(s=>new Date(s.datetime).toDateString()));
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const today=new Date().toDateString();
+  const selStr=selectedDate?selectedDate.toDateString():'';
+  let html='';
+  ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d=>{ html+=`<div class="cal-day-name">${d}</div>`; });
+  for(let i=0;i<firstDay;i++) html+=`<div class="cal-day empty"></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const dt=new Date(calYear,calMonth,d);
+    const dtStr=dt.toDateString();
+    const cls=['cal-day', dtStr===today?'today':'', dtStr===selStr?'selected':'', salesDates.has(dtStr)?'has-sales':''].filter(Boolean).join(' ');
+    html+=`<div class="${cls}" onclick="selectCalDate(${calYear},${calMonth},${d})">${d}</div>`;
+  }
+  document.getElementById('calGrid').innerHTML=html;
+}
+function selectCalDate(y,m,d){
+  selectedDate=new Date(y,m,d);
+  document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+  const label=selectedDate.toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});
+  document.getElementById('calBtnLabel').textContent=label;
+  document.getElementById('calBtn').classList.add('active-date');
+  document.getElementById('calPopup').classList.remove('open');
+  renderDashboard();
+}
+function clearCalDate(){
+  selectedDate=null;
+  document.getElementById('calBtnLabel').textContent='Pick date';
+  document.getElementById('calBtn').classList.remove('active-date');
+  document.getElementById('calPopup').classList.remove('open');
+  document.querySelector('.period-btn').click();
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#calWrap')) document.getElementById('calPopup')?.classList.remove('open');
+  if(!e.target.closest('.ac-wrap')) document.querySelectorAll('.ac-dropdown').forEach(d=>d.classList.remove('open'));
+});
+
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
 function renderDashboard(){
-  const filtered = filterSales(period);
+  let filtered = filterSales(period);
+  // Apply item filter
+  if(itemFilter){
+    filtered = filtered.filter(s=>(s.lines||[]).some(l=>l.name===itemFilter));
+    // Show item-specific total
+    const itemTotal = filtered.reduce((a,s)=>a+(s.lines||[]).filter(l=>l.name===itemFilter).reduce((b,l)=>b+l.price*l.qty,0),0);
+    const periodLabel = selectedDate
+      ? selectedDate.toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})
+      : {daily:'today',weekly:'this week',monthly:'this month',yearly:'this year'}[period];
+    document.getElementById('itemSalesHeader').textContent=`Total sales for "${itemFilter}" — ${periodLabel}`;
+    document.getElementById('itemSalesVal').textContent='₱'+itemTotal.toLocaleString('en-PH',{minimumFractionDigits:2});
+  }
   const total = filtered.reduce((a,s)=>a+Number(s.total),0);
   const orders = filtered.length;
   const avg = orders ? total/orders : 0;
   const units = filtered.reduce((a,s)=>a+(s.lines||[]).reduce((b,l)=>b+Number(l.qty),0),0);
   const labels={daily:'Today',weekly:'This week',monthly:'This month',yearly:'This year'};
+  const periodSub = selectedDate
+    ? selectedDate.toLocaleDateString('en-PH',{weekday:'short',month:'short',day:'numeric',year:'numeric'})
+    : labels[period];
   document.getElementById('kpi-total').textContent='₱'+total.toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
   document.getElementById('kpi-orders').textContent=orders;
   document.getElementById('kpi-avg').textContent='₱'+avg.toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
   document.getElementById('kpi-items').textContent=units;
-  document.getElementById('kpi-period').textContent=labels[period];
+  document.getElementById('kpi-period').textContent=periodSub;
   renderTrend(filtered);
   renderTopItems(filtered);
   renderRecentSales(filtered);
@@ -725,7 +910,7 @@ async function saveSale(){
   closeModal('saleModal');
   await loadSales(); renderDashboard();
 }
-document.addEventListener('click',e=>{if(!e.target.closest('.ac-wrap')) document.querySelectorAll('.ac-dropdown').forEach(d=>d.classList.remove('open'));});
+// ac-wrap close handled by global click listener above
 
 // ─── ITEMS ────────────────────────────────────────────────────────────────────
 function renderItems(){
@@ -779,6 +964,31 @@ async function deleteItem(id){
   if(!confirm('Delete this item?')) return;
   await sb.from('items').delete().eq('id',id);
   await loadItems(); renderItems();
+}
+
+// ─── ACCOUNT / CHANGE PASSWORD ────────────────────────────────────────────────
+function showAccountView(){
+  document.getElementById('accountEmail').textContent = currentUser?.email || '—';
+  // clear fields
+  document.getElementById('cpNew').value='';
+  document.getElementById('cpConfirm').value='';
+  document.getElementById('cpErr').classList.remove('show');
+  document.getElementById('cpOk').classList.remove('show');
+}
+async function changePassword(){
+  const np = document.getElementById('cpNew').value;
+  const cp = document.getElementById('cpConfirm').value;
+  const err = document.getElementById('cpErr');
+  const ok  = document.getElementById('cpOk');
+  const btn = document.getElementById('cpBtn');
+  err.classList.remove('show'); ok.classList.remove('show');
+  if(np.length < 6){ err.textContent='Password must be at least 6 characters.'; err.classList.add('show'); return; }
+  if(np !== cp){ err.textContent='Passwords do not match.'; err.classList.add('show'); return; }
+  btn.innerHTML='<span class="spinner"></span>Updating…'; btn.disabled=true;
+  const { error } = await sb.auth.updateUser({ password: np });
+  if(error){ err.textContent=error.message; err.classList.add('show'); }
+  else { ok.textContent='✓ Password updated successfully!'; ok.classList.add('show'); document.getElementById('cpNew').value=''; document.getElementById('cpConfirm').value=''; }
+  btn.innerHTML='Update password'; btn.disabled=false;
 }
 
 // ─── ADMIN — LICENSE MANAGEMENT ───────────────────────────────────────────────
