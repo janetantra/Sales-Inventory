@@ -673,7 +673,17 @@ async function loadSales(){
   sales = data || [];
 }
 
-// ─── PERIOD ───────────────────────────────────────────────────────────────────
+// ─── TIMEZONE FIX ─────────────────────────────────────────────────────────────
+// Supabase stores UTC. Convert to PH local date correctly for all comparisons.
+function localDate(datetimeStr){
+  // Parse as local by replacing the T separator — avoids UTC shift
+  const d = new Date(datetimeStr);
+  // Return a new Date in local timezone
+  return new Date(d.getTime() - d.getTimezoneOffset() * 0 ); // keep as-is; JS Date is already local
+}
+// Safe local "today" string using the device clock
+function todayStr(){ return new Date().toLocaleDateString('en-PH'); }
+function dateStr(d){ return new Date(d).toLocaleDateString('en-PH'); }
 let selectedDate = null;
 let itemFilter = '';
 let rangeFrom = null;
@@ -694,6 +704,7 @@ function setPeriod(p, btn){
 
 function filterSales(p){
   const now = new Date();
+  const nowDateStr = now.toLocaleDateString('en-PH');
   // Range filter takes priority over everything
   if(rangeFrom && rangeTo){
     return sales.filter(s => {
@@ -702,13 +713,18 @@ function filterSales(p){
     });
   }
   if(selectedDate){
-    return sales.filter(s => new Date(s.datetime).toDateString()===selectedDate.toDateString());
+    const selStr = selectedDate.toLocaleDateString('en-PH');
+    return sales.filter(s => new Date(s.datetime).toLocaleDateString('en-PH') === selStr);
   }
   return sales.filter(s => {
     const d = new Date(s.datetime);
-    if(p==='daily') return d.toDateString()===now.toDateString();
-    if(p==='weekly'){ const w=new Date(now); w.setDate(now.getDate()-now.getDay()); w.setHours(0,0,0,0); return d>=w; }
-    if(p==='monthly') return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+    const dStr = d.toLocaleDateString('en-PH');
+    if(p==='daily') return dStr === nowDateStr;
+    if(p==='weekly'){
+      const w=new Date(now); w.setDate(now.getDate()-now.getDay()); w.setHours(0,0,0,0);
+      return d >= w;
+    }
+    if(p==='monthly') return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
     if(p==='yearly') return d.getFullYear()===now.getFullYear();
   });
 }
@@ -823,17 +839,17 @@ function calNav(dir){ calMonth+=dir; if(calMonth>11){calMonth=0;calYear++;}else 
 function renderCal(){
   const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
   document.getElementById('calMonthLabel').textContent=months[calMonth]+' '+calYear;
-  const salesDates=new Set(sales.map(s=>new Date(s.datetime).toDateString()));
+  const salesDates=new Set(sales.map(s=>new Date(s.datetime).toLocaleDateString('en-PH')));
   const firstDay=new Date(calYear,calMonth,1).getDay();
   const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
-  const today=new Date().toDateString();
-  const selStr=selectedDate?selectedDate.toDateString():'';
+  const today=new Date().toLocaleDateString('en-PH');
+  const selStr=selectedDate?selectedDate.toLocaleDateString('en-PH'):'';
   let html='';
   ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d=>{ html+=`<div class="cal-day-name">${d}</div>`; });
   for(let i=0;i<firstDay;i++) html+=`<div class="cal-day empty"></div>`;
   for(let d=1;d<=daysInMonth;d++){
     const dt=new Date(calYear,calMonth,d);
-    const dtStr=dt.toDateString();
+    const dtStr=dt.toLocaleDateString('en-PH');
     const cls=['cal-day', dtStr===today?'today':'', dtStr===selStr?'selected':'', salesDates.has(dtStr)?'has-sales':''].filter(Boolean).join(' ');
     html+=`<div class="${cls}" onclick="selectCalDate(${calYear},${calMonth},${d})">${d}</div>`;
   }
@@ -975,8 +991,11 @@ function openAddSale(){
   document.getElementById('amountReceived').value='';
   document.getElementById('changeDisplay').textContent='₱0.00';
   document.getElementById('changeDisplay').style.color='var(--accent2)';
-  const now=new Date(); now.setMinutes(now.getMinutes()-now.getTimezoneOffset());
-  document.getElementById('sale-datetime').value=now.toISOString().slice(0,16);
+  // Set default datetime to current local time (PH timezone)
+  const now=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  const localDT=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  document.getElementById('sale-datetime').value=localDT;
   addSaleItemRow(); updateSaleTotal();
   document.getElementById('saleModal').classList.add('open');
 }
@@ -1054,8 +1073,10 @@ async function saveSale(){
   });
   if(!lines.length){showToast('Add at least one item.','error');return;}
   const total=lines.reduce((a,l)=>a+l.price*l.qty,0);
-  const dt=document.getElementById('sale-datetime').value;
-  const { error } = await sb.from('sales').insert({user_id:currentUser.id,lines,total,datetime:dt});
+  // Convert the local datetime input to a proper ISO string preserving local time
+  const dtInput=document.getElementById('sale-datetime').value; // "2025-07-03T14:30"
+  const dtLocal=new Date(dtInput); // JS parses this as LOCAL time — correct
+  const { error } = await sb.from('sales').insert({user_id:currentUser.id,lines,total,datetime:dtLocal.toISOString()});
   if(error){showToast('Error saving sale.','error');return;}
   showToast('Sale saved!','success');
   closeModal('saleModal');
