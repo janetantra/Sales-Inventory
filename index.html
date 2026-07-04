@@ -123,28 +123,67 @@ tr:hover td{background:#ffffff04}
 .stock-low{color:var(--danger) !important}
 .item-actions{display:flex;gap:6px;margin-top:6px}
 
-/* ── SALE ROWS (autocomplete) ── */
-.sale-items-list{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
-.sale-item-row{background:#ffffff06;border:1px solid var(--border);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:8px}
-.sale-item-row-top{display:flex;gap:8px;align-items:center}
+/* ── SALE MODAL ── */
+.sale-modal-inner{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;display:flex;flex-direction:column}
+.sale-modal-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.sale-modal-header h2{font-size:18px;font-weight:600}
+.sale-modal-close{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;padding:2px 6px;border-radius:6px}
+.sale-modal-close:hover{color:var(--danger);background:#f8717115}
+.sale-modal-body{padding:20px 24px;flex:1;overflow-y:auto}
+.sale-modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px}
+
+/* ── SALE ROWS (autocomplete) — LARGE ── */
+.sale-items-list{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
+.sale-item-row{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.sale-item-row-top{display:flex;gap:10px;align-items:center}
 .ac-wrap{position:relative;flex:1}
-.ac-input{width:100%;padding:8px 10px;background:#ffffff08;border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:var(--font);outline:none}
-.ac-input:focus{border-color:var(--accent)}
-.ac-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:8px;z-index:300;max-height:180px;overflow-y:auto;display:none}
+.ac-input{width:100%;padding:13px 14px;background:#ffffff08;border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:16px;font-family:var(--font);outline:none;transition:border .15s}
+.ac-input:focus{border-color:var(--accent);background:#ffffff0d}
+.ac-input::placeholder{color:var(--muted)}
+.ac-dropdown{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:10px;z-index:300;max-height:220px;overflow-y:auto;display:none;box-shadow:0 8px 24px #00000050}
 .ac-dropdown.open{display:block}
-.ac-option{padding:9px 12px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:8px}
-.ac-option:hover,.ac-option.focused{background:#7c6ef720}
-.ac-option-name{flex:1}
-.ac-option-price{color:var(--accent2);font-size:12px;white-space:nowrap}
-.ac-option-stock{color:var(--muted);font-size:11px;white-space:nowrap}
-.sale-item-row-bottom{display:flex;gap:8px;align-items:center;font-size:13px}
-.sale-item-row-bottom input[type=number]{width:80px;padding:7px 10px;background:#ffffff08;border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:var(--font);outline:none}
+.ac-option{padding:12px 14px;cursor:pointer;font-size:15px;display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.ac-option:last-child{border-bottom:none}
+.ac-option:hover,.ac-option.focused{background:#7c6ef718}
+.ac-option-name{flex:1;font-weight:500}
+.ac-option-price{color:var(--accent2);font-size:14px;font-weight:600;white-space:nowrap}
+.ac-option-stock{color:var(--muted);font-size:12px;white-space:nowrap}
+.sale-item-row-bottom{display:flex;gap:10px;align-items:center;background:#ffffff06;border-radius:8px;padding:10px 12px}
+.sale-qty-label{font-size:13px;color:var(--muted);white-space:nowrap;font-weight:500}
+.sale-qty-controls{display:flex;align-items:center;gap:8px}
+.qty-btn{width:34px;height:34px;border-radius:8px;border:1px solid var(--border);background:#ffffff08;color:var(--text);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;font-family:var(--font);transition:all .15s;flex-shrink:0}
+.qty-btn:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+.sale-item-row-bottom input[type=number]{width:64px;padding:7px 8px;background:#ffffff08;border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:17px;font-family:var(--font);outline:none;text-align:center;font-weight:600}
 .sale-item-row-bottom input[type=number]:focus{border-color:var(--accent)}
-.price-display{flex:1;text-align:right;color:var(--accent2);font-weight:500}
-.remove-btn{background:none;border:none;color:var(--danger);cursor:pointer;font-size:20px;padding:0 2px;line-height:1}
-.sale-total{display:flex;justify-content:space-between;padding:12px;background:#7c6ef710;border-radius:8px;margin-top:8px}
-.sale-total-label{color:var(--muted);font-size:13px}
-.sale-total-val{font-size:16px;font-weight:600;color:var(--accent)}
+.price-display{flex:1;text-align:right;color:var(--accent2);font-weight:700;font-size:18px}
+.remove-btn{background:none;border:1px solid #f8717140;color:var(--danger);cursor:pointer;font-size:18px;padding:6px 8px;line-height:1;border-radius:8px;transition:all .15s}
+.remove-btn:hover{background:#f8717120}
+
+/* ── SALE TOTAL BAR ── */
+.sale-total{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:linear-gradient(135deg,#7c6ef715,#5eead410);border:1px solid #7c6ef730;border-radius:10px;margin-bottom:14px}
+.sale-total-label{color:var(--muted);font-size:14px;font-weight:500}
+.sale-total-val{font-size:24px;font-weight:700;color:var(--accent)}
+
+/* ── ADD ITEM ROW BUTTON ── */
+.add-row-btn{width:100%;padding:12px;border-radius:10px;border:1.5px dashed var(--border);background:none;color:var(--muted);font-size:14px;cursor:pointer;font-family:var(--font);transition:all .15s;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:8px}
+.add-row-btn:hover{border-color:var(--accent);color:var(--accent);background:#7c6ef710}
+
+/* ── CHANGE CALCULATOR ── */
+.change-calc{background:#ffffff06;border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px;display:flex;flex-direction:column;gap:12px}
+.change-calc-title{font-size:12px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+.change-calc-input{display:flex;align-items:center;gap:10px}
+.change-calc-input label{font-size:14px;color:var(--muted);white-space:nowrap;min-width:0}
+.change-calc-input input{flex:1;padding:12px 14px;background:#ffffff08;border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:18px;font-family:var(--font);outline:none;font-weight:600}
+.change-calc-input input:focus{border-color:var(--accent2)}
+.change-result{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:#5eead418;border:1px solid #5eead435;border-radius:10px}
+.change-result label{font-size:14px;color:var(--muted);font-weight:500}
+.change-result-val{font-size:26px;font-weight:700;color:var(--accent2)}
+
+/* ── SAVE SALE BTN ── */
+.save-sale-btn{flex:1;padding:14px;border-radius:10px;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .15s;box-shadow:0 4px 16px #22c55e30}
+.save-sale-btn:hover{background:linear-gradient(135deg,#16a34a,#15803d);box-shadow:0 6px 20px #22c55e50}
+.cancel-sale-btn{padding:14px 20px;border-radius:10px;border:1px solid var(--border);background:none;color:var(--muted);font-size:15px;cursor:pointer;font-family:var(--font);transition:all .15s}
+.cancel-sale-btn:hover{border-color:var(--muted);color:var(--text)}
 
 /* ── ADMIN ── */
 .admin-badge{background:#7c6ef720;color:var(--accent);padding:3px 8px;border-radius:20px;font-size:11px;font-weight:500}
@@ -209,6 +248,34 @@ tr:hover td{background:#ffffff04}
 .cal-day.empty{cursor:default}
 .cal-clear{width:100%;margin-top:10px;padding:7px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--muted);font-size:12px;cursor:pointer;font-family:var(--font)}
 .cal-clear:hover{color:var(--danger);border-color:var(--danger)}
+
+/* ── ADD SALE CTA ── */
+.add-sale-cta{
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  width:100%;padding:18px;margin-bottom:20px;
+  background:linear-gradient(135deg,#22c55e,#16a34a);
+  border:none;border-radius:14px;cursor:pointer;font-family:var(--font);
+  box-shadow:0 4px 24px #22c55e40;
+  transition:all .2s;
+  position:relative;overflow:hidden;
+}
+.add-sale-cta::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,#fff2,transparent);pointer-events:none}
+.add-sale-cta:hover{transform:translateY(-2px);box-shadow:0 8px 32px #22c55e60;background:linear-gradient(135deg,#16a34a,#15803d)}
+.add-sale-cta:active{transform:translateY(0);box-shadow:0 2px 12px #22c55e40}
+.add-sale-cta-icon{font-size:28px;color:#fff;font-weight:300;line-height:1}
+.add-sale-cta-text{font-size:20px;font-weight:700;color:#fff;letter-spacing:.3px}
+
+/* ── MULTI-ITEM FILTER ── */
+.filter-ac-wrap{position:relative;flex:1;background:#ffffff08;border:1px solid var(--border);border-radius:10px;padding:6px 10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:42px;transition:border .15s}
+.filter-ac-wrap:focus-within{border-color:var(--accent)}
+.filter-chips{display:contents}
+.filter-chip{display:inline-flex;align-items:center;gap:5px;background:#7c6ef730;border:1px solid #7c6ef760;color:var(--accent);border-radius:20px;padding:3px 10px 3px 10px;font-size:12px;font-weight:500;white-space:nowrap}
+.filter-chip button{background:none;border:none;color:var(--accent);cursor:pointer;font-size:14px;padding:0;line-height:1;opacity:.7}
+.filter-chip button:hover{opacity:1}
+.filter-ac-input{background:none;border:none;outline:none;color:var(--text);font-size:13px;font-family:var(--font);min-width:180px;flex:1;padding:2px 4px}
+.filter-ac-input::placeholder{color:var(--muted)}
+.item-breakdown-tag{background:#ffffff0a;border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--muted)}
+.item-breakdown-tag strong{color:var(--accent2)}
 
 /* ── ITEM FILTER ── */
 .filter-bar{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
@@ -344,46 +411,29 @@ tr:hover td{background:#ffffff04}
       </div>
     </div>
 
-    <!-- Item filter -->
-    <div class="filter-bar">
-      <label>Filter by item:</label>
-      <div class="ac-wrap" style="flex:1;max-width:280px" id="filterAcWrap">
-        <input class="ac-input" type="text" id="itemFilterInput" placeholder="Type item name…" autocomplete="off"
+    <!-- ✅ BIG GREEN ADD SALE CTA -->
+    <button class="add-sale-cta" onclick="openAddSale()">
+      <span class="add-sale-cta-icon">＋</span>
+      <span class="add-sale-cta-text">Add Sale</span>
+    </button>
+
+    <!-- Item filter — MULTI SELECT with chips -->
+    <div class="filter-bar" id="filterBar">
+      <div class="filter-ac-wrap" id="filterAcWrap">
+        <div class="filter-chips" id="filterChips"></div>
+        <input class="filter-ac-input" type="text" id="itemFilterInput" placeholder="🔍 Filter by item (pick multiple)…" autocomplete="off"
           oninput="onFilterAcInput(this)"
           onfocus="onFilterAcInput(this)"
           onkeydown="onFilterAcKeydown(event)">
         <div class="ac-dropdown" id="filterAcDrop"></div>
       </div>
-      <button id="filterClearBtn" onclick="clearItemFilter()" style="display:none;background:none;border:1px solid var(--danger);color:var(--danger);padding:5px 10px;border-radius:6px;font-size:12px;cursor:pointer;font-family:var(--font)">✕ Clear</button>
-      <span class="filter-badge" id="filterBadge" style="display:none"></span>
+      <button id="filterClearBtn" onclick="clearItemFilter()" style="display:none;background:none;border:1px solid var(--danger);color:var(--danger);padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--font);white-space:nowrap">✕ Clear all</button>
     </div>
-
-    <!-- Date-time range filter -->
-    <div class="range-bar" id="rangeBar">
-      <div class="range-toggle" onclick="toggleRangeFilter()">
-        <span>🕐 Date &amp; time range</span>
-        <span id="rangeToggleArrow" style="transition:transform .2s">▸</span>
-      </div>
-      <div class="range-inputs" id="rangeInputs" style="display:none">
-        <div class="range-row">
-          <div class="range-field">
-            <label>From</label>
-            <input type="datetime-local" id="rangeFrom" onchange="applyRange()">
-          </div>
-          <div class="range-sep">→</div>
-          <div class="range-field">
-            <label>To</label>
-            <input type="datetime-local" id="rangeTo" onchange="applyRange()">
-          </div>
-          <button class="range-clear-btn" onclick="clearRange()">✕ Clear range</button>
-        </div>
-        <div id="rangeActiveBadge" style="display:none" class="range-active-badge"></div>
-      </div>
-    </div>
-    <!-- Item total when filtered -->
+    <!-- Item totals when filtered -->
     <div class="item-sales-total" id="itemSalesTotal">
-      <div class="item-sales-header" id="itemSalesHeader">Total sales for item</div>
+      <div class="item-sales-header" id="itemSalesHeader">Total for selected items</div>
       <div class="item-sales-val" id="itemSalesVal">₱0</div>
+      <div id="itemSalesBreakdown" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px"></div>
     </div>
 
     <div class="kpi-grid">
@@ -397,7 +447,7 @@ tr:hover td{background:#ffffff04}
       <div class="card"><h3>Top items</h3><div class="bar-chart" id="top-items-chart"></div></div>
     </div>
     <div class="card">
-      <div class="section-header"><h2>Recent transactions</h2><button class="btn-ghost btn-sm" style="padding:7px 14px;font-size:13px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;cursor:pointer;font-family:var(--font)" onclick="openAddSale()">+ Add sale</button></div>
+      <div class="section-header"><h2>Recent transactions</h2></div>
       <div class="tbl-wrap"><table>
         <thead><tr><th>#</th><th>Items</th><th>Amount</th><th>Date & time</th><th></th></tr></thead>
         <tbody id="recent-tbody"></tbody>
@@ -451,28 +501,44 @@ tr:hover td{background:#ffffff04}
 
 <!-- ADD SALE MODAL -->
 <div class="overlay" id="saleModal">
-  <div class="modal">
-    <h2>New sale</h2>
-    <div id="sale-items-list" class="sale-items-list"></div>
-    <button class="btn-ghost btn-sm" style="padding:7px 14px;font-size:12px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;cursor:pointer;font-family:var(--font);margin-bottom:12px" onclick="addSaleItemRow()">+ Add item</button>
-    <div class="sale-total"><span class="sale-total-label">Total</span><span class="sale-total-val" id="sale-total-display">₱0</span></div>
-    <!-- Amount received + change -->
-    <div style="margin-top:12px;background:#ffffff06;border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px">
-      <div style="display:flex;align-items:center;gap:10px">
-        <label style="font-size:12px;color:var(--muted);white-space:nowrap;min-width:110px">Amount received (₱)</label>
-        <input type="number" id="amountReceived" min="0" step="1" placeholder="0"
-          oninput="calcChange()"
-          style="flex:1;padding:8px 10px;background:#ffffff08;border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;font-family:var(--font);outline:none;font-weight:500">
+  <div class="sale-modal-inner">
+    <div class="sale-modal-header">
+      <h2>🛒 New Sale</h2>
+      <button class="sale-modal-close" onclick="closeModal('saleModal')">×</button>
+    </div>
+    <div class="sale-modal-body">
+      <!-- Items list -->
+      <div id="sale-items-list" class="sale-items-list"></div>
+      <button class="add-row-btn" onclick="addSaleItemRow()">＋ Add another item</button>
+
+      <!-- Order total -->
+      <div class="sale-total">
+        <span class="sale-total-label">Order total</span>
+        <span class="sale-total-val" id="sale-total-display">₱0.00</span>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#5eead41a;border:1px solid #5eead430;border-radius:8px">
-        <span style="font-size:12px;color:var(--muted)">Change</span>
-        <span id="changeDisplay" style="font-size:20px;font-weight:600;color:var(--accent2)">₱0.00</span>
+
+      <!-- Change calculator -->
+      <div class="change-calc">
+        <div class="change-calc-title">💵 Change calculator</div>
+        <div class="change-calc-input">
+          <label>Cash received</label>
+          <input type="number" id="amountReceived" min="0" step="1" placeholder="0.00" oninput="calcChange()">
+        </div>
+        <div class="change-result">
+          <label>Change</label>
+          <span class="change-result-val" id="changeDisplay">₱0.00</span>
+        </div>
+      </div>
+
+      <!-- Date time -->
+      <div class="form-group">
+        <label>Date & time</label>
+        <input type="datetime-local" id="sale-datetime">
       </div>
     </div>
-    <div class="form-group" style="margin-top:12px"><label>Date & time</label><input type="datetime-local" id="sale-datetime"></div>
-    <div class="modal-footer">
-      <button class="btn-ghost" style="width:auto;padding:8px 16px;font-size:13px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;cursor:pointer;font-family:var(--font)" onclick="closeModal('saleModal')">Cancel</button>
-      <button class="btn-ghost" style="width:auto;padding:8px 16px;font-size:13px;background:var(--accent);border:none;color:#fff;border-radius:8px;cursor:pointer;font-family:var(--font);font-weight:500" onclick="saveSale()">Save sale</button>
+    <div class="sale-modal-footer">
+      <button class="cancel-sale-btn" onclick="closeModal('saleModal')">Cancel</button>
+      <button class="save-sale-btn" onclick="saveSale()">✓ Save Sale</button>
     </div>
   </div>
 </div>
@@ -685,7 +751,6 @@ function localDate(datetimeStr){
 function todayStr(){ return new Date().toLocaleDateString('en-PH'); }
 function dateStr(d){ return new Date(d).toLocaleDateString('en-PH'); }
 let selectedDate = null;
-let itemFilter = '';
 let rangeFrom = null;
 let rangeTo = null;
 let rangeOpen = false;
@@ -779,11 +844,15 @@ function clearRange(silent=false){
   }
 }
 
-// ─── ITEM FILTER AUTOCOMPLETE ─────────────────────────────────────────────────
+// ─── ITEM FILTER — MULTI SELECT ───────────────────────────────────────────────
+let itemFilters = new Set(); // multiple items
+
 function onFilterAcInput(input){
   const q = input.value.trim().toLowerCase();
   const drop = document.getElementById('filterAcDrop');
-  const filtered = q ? items.filter(it => it.name.toLowerCase().includes(q)) : items;
+  // exclude already selected
+  const available = items.filter(it => !itemFilters.has(it.name));
+  const filtered = q ? available.filter(it => it.name.toLowerCase().includes(q)) : available;
   if(!filtered.length){
     drop.innerHTML='<div style="padding:9px 12px;font-size:13px;color:var(--muted)">No items found</div>';
     drop.classList.add('open'); return;
@@ -806,25 +875,37 @@ function onFilterAcKeydown(e){
   else if(e.key==='Escape'){ drop.classList.remove('open'); }
 }
 function selectFilterItem(name){
-  itemFilter = name;
-  document.getElementById('itemFilterInput').value = name;
+  itemFilters.add(name);
+  document.getElementById('itemFilterInput').value = '';
   document.getElementById('filterAcDrop').classList.remove('open');
-  document.getElementById('filterBadge').textContent = name;
-  document.getElementById('filterBadge').style.display = '';
+  renderFilterChips();
   document.getElementById('filterClearBtn').style.display = '';
   document.getElementById('itemSalesTotal').classList.add('show');
   renderDashboard();
 }
+function removeFilterChip(name){
+  itemFilters.delete(name);
+  renderFilterChips();
+  if(itemFilters.size === 0) clearItemFilter();
+  else renderDashboard();
+}
+function renderFilterChips(){
+  const container = document.getElementById('filterChips');
+  container.innerHTML = [...itemFilters].map(name=>`
+    <span class="filter-chip">${name}
+      <button onclick="removeFilterChip('${name.replace(/'/g,"\\'")}')">×</button>
+    </span>`).join('');
+}
 function clearItemFilter(){
-  itemFilter = '';
+  itemFilters.clear();
   document.getElementById('itemFilterInput').value = '';
-  document.getElementById('filterBadge').style.display = 'none';
+  document.getElementById('filterChips').innerHTML = '';
   document.getElementById('filterClearBtn').style.display = 'none';
   document.getElementById('itemSalesTotal').classList.remove('show');
   renderDashboard();
 }
 function applyItemFilter(){ /* kept for compat */ }
-function populateItemFilter(){ /* no longer needed — autocomplete driven */ }
+function populateItemFilter(){ /* no longer needed */ }
 
 // ─── CALENDAR ─────────────────────────────────────────────────────────────────
 let calYear, calMonth;
@@ -882,15 +963,24 @@ function renderDashboard(){
   let filtered = filterSales(period);
   const fmtDt = d => d.toLocaleString('en-PH',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
   const rangeLabel = rangeFrom && rangeTo ? `${fmtDt(rangeFrom)} → ${fmtDt(rangeTo)}` : null;
-  // Apply item filter
-  if(itemFilter){
-    filtered = filtered.filter(s=>(s.lines||[]).some(l=>l.name===itemFilter));
-    const itemTotal = filtered.reduce((a,s)=>a+(s.lines||[]).filter(l=>l.name===itemFilter).reduce((b,l)=>b+l.price*l.qty,0),0);
+  // Apply multi-item filter
+  if(itemFilters.size > 0){
+    filtered = filtered.filter(s=>(s.lines||[]).some(l=>itemFilters.has(l.name)));
+    // Combined total
+    const combined = filtered.reduce((a,s)=>a+(s.lines||[]).filter(l=>itemFilters.has(l.name)).reduce((b,l)=>b+l.price*l.qty,0),0);
     const periodLabel = rangeLabel || (selectedDate
       ? selectedDate.toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})
       : {daily:'today',weekly:'this week',monthly:'this month',yearly:'this year'}[period]);
-    document.getElementById('itemSalesHeader').textContent=`Total sales for "${itemFilter}" — ${periodLabel}`;
-    document.getElementById('itemSalesVal').textContent='₱'+itemTotal.toLocaleString('en-PH',{minimumFractionDigits:2});
+    document.getElementById('itemSalesHeader').textContent=`Total for ${itemFilters.size} item${itemFilters.size>1?'s':''} — ${periodLabel}`;
+    document.getElementById('itemSalesVal').textContent='₱'+combined.toLocaleString('en-PH',{minimumFractionDigits:2});
+    // Per-item breakdown
+    const breakdown = document.getElementById('itemSalesBreakdown');
+    if(breakdown){
+      breakdown.innerHTML = [...itemFilters].map(name=>{
+        const val = filtered.reduce((a,s)=>a+(s.lines||[]).filter(l=>l.name===name).reduce((b,l)=>b+l.price*l.qty,0),0);
+        return `<span class="item-breakdown-tag">${name}: <strong>₱${val.toLocaleString('en-PH',{minimumFractionDigits:2})}</strong></span>`;
+      }).join('');
+    }
   }
   const total = filtered.reduce((a,s)=>a+Number(s.total),0);
   const orders = filtered.length;
@@ -1003,19 +1093,24 @@ function addSaleItemRow(){
   const idx=acState.length; acState.push({selectedItem:null,qty:1});
   const list=document.getElementById('sale-items-list');
   const row=document.createElement('div'); row.className='sale-item-row'; row.dataset.idx=idx;
-  row.innerHTML=`<div class="sale-item-row-top">
-    <div class="ac-wrap">
-      <input class="ac-input" type="text" placeholder="Type to search item…" autocomplete="off"
-        oninput="onAcInput(this,${idx})" onkeydown="onAcKeydown(event,${idx})" onfocus="showAcDropdown(${idx},this.value)">
-      <div class="ac-dropdown" id="ac-drop-${idx}"></div>
+  row.innerHTML=`
+    <div class="sale-item-row-top">
+      <div class="ac-wrap">
+        <input class="ac-input" type="text" placeholder="Search item…" autocomplete="off"
+          oninput="onAcInput(this,${idx})" onkeydown="onAcKeydown(event,${idx})" onfocus="showAcDropdown(${idx},this.value)">
+        <div class="ac-dropdown" id="ac-drop-${idx}"></div>
+      </div>
+      <button class="remove-btn" onclick="removeSaleRow(this,${idx})" title="Remove">🗑</button>
     </div>
-    <button class="remove-btn" onclick="removeSaleRow(this,${idx})">×</button>
-  </div>
-  <div class="sale-item-row-bottom">
-    <label style="color:var(--muted);font-size:12px;white-space:nowrap">Qty:</label>
-    <input type="number" min="1" value="1" placeholder="1" oninput="onQtyInput(this,${idx})">
-    <span class="price-display" id="ac-price-${idx}">—</span>
-  </div>`;
+    <div class="sale-item-row-bottom">
+      <span class="sale-qty-label">Qty</span>
+      <div class="sale-qty-controls">
+        <button class="qty-btn" onclick="adjustQty(${idx},-1)">−</button>
+        <input type="number" min="1" value="1" oninput="onQtyInput(this,${idx})">
+        <button class="qty-btn" onclick="adjustQty(${idx},1)">+</button>
+      </div>
+      <span class="price-display" id="ac-price-${idx}">—</span>
+    </div>`;
   list.appendChild(row);
 }
 function onAcInput(input,idx){ acState[idx].selectedItem=null; showAcDropdown(idx,input.value); updateSaleTotal(); }
@@ -1050,6 +1145,12 @@ function onAcKeydown(e,idx){
   else if(e.key==='Escape'){drop.classList.remove('open');}
 }
 function onQtyInput(input,idx){ acState[idx].qty=parseInt(input.value)||0; updateSaleTotal(); }
+function adjustQty(idx, delta){
+  const row=document.querySelector(`.sale-item-row[data-idx="${idx}"]`);
+  const input=row.querySelector('input[type=number]');
+  const newVal=Math.max(1,(parseInt(input.value)||1)+delta);
+  input.value=newVal; acState[idx].qty=newVal; updateSaleTotal();
+}
 function removeSaleRow(btn,idx){ btn.closest('.sale-item-row').remove(); acState[idx]={selectedItem:null,qty:0}; updateSaleTotal(); }
 function updateSaleTotal(){
   let total=0;
@@ -1082,7 +1183,6 @@ async function saveSale(){
   closeModal('saleModal');
   await loadSales(); renderDashboard();
 }
-// ─── CHANGE CALCULATOR ────────────────────────────────────────────────────────
 function calcChange(){
   const received = parseFloat(document.getElementById('amountReceived').value) || 0;
   const totalText = document.getElementById('sale-total-display').textContent.replace('₱','').replace(/,/g,'');
