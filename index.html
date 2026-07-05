@@ -770,7 +770,7 @@ function setPeriod(p, btn){
 function filterSales(p){
   const now = new Date();
   const nowDateStr = now.toLocaleDateString('en-PH');
-  // Range filter takes priority over everything
+  // Range filter takes priority
   if(rangeFrom && rangeTo){
     return sales.filter(s => {
       const d = new Date(s.datetime);
@@ -786,8 +786,16 @@ function filterSales(p){
     const dStr = d.toLocaleDateString('en-PH');
     if(p==='daily') return dStr === nowDateStr;
     if(p==='weekly'){
-      const w=new Date(now); w.setDate(now.getDate()-now.getDay()); w.setHours(0,0,0,0);
-      return d >= w;
+      // Week starts Monday — getDay() is 0=Sun,1=Mon...6=Sat
+      // If today is Sunday (0), treat it as day 7 so Monday is still start of week
+      const dayOfWeek = now.getDay() === 0 ? 7 : now.getDay();
+      const wStart = new Date(now);
+      wStart.setDate(now.getDate() - (dayOfWeek - 1)); // go back to Monday
+      wStart.setHours(0, 0, 0, 0);
+      const wEnd = new Date(wStart);
+      wEnd.setDate(wStart.getDate() + 6); // Sunday
+      wEnd.setHours(23, 59, 59, 999);
+      return d >= wStart && d <= wEnd;
     }
     if(p==='monthly') return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
     if(p==='yearly') return d.getFullYear()===now.getFullYear();
@@ -1008,10 +1016,15 @@ function renderTrend(filtered){
     filtered.forEach(s=>{buckets[new Date(s.datetime).getHours()].val+=Number(s.total);});
     buckets=buckets.filter((b,i,a)=>b.val||a[i-1]?.val||a[i+1]?.val).slice(-8);
   } else if(period==='weekly'){
-    label='Daily (this week)';
-    const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    label='Daily (Mon – Sun)';
+    // Mon=0 ... Sun=6 buckets, matching our week definition
+    const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
     for(let i=0;i<7;i++) buckets.push({lbl:days[i],val:0});
-    filtered.forEach(s=>{buckets[new Date(s.datetime).getDay()].val+=Number(s.total);});
+    filtered.forEach(s=>{
+      const day=new Date(s.datetime).getDay(); // 0=Sun,1=Mon...6=Sat
+      const bucketIdx = day===0 ? 6 : day-1;  // Sun→6, Mon→0...Sat→5
+      buckets[bucketIdx].val+=Number(s.total);
+    });
   } else if(period==='monthly'){
     label='Weekly (this month)';
     for(let w=1;w<=5;w++) buckets.push({lbl:'Wk'+w,val:0});
